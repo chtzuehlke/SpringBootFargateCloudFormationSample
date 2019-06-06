@@ -1,4 +1,4 @@
-# Sample: Spring Boot & Fargate & CLoudFormation
+# Sample: Spring Boot & Fargate & CloudFormation
 
 ## Pre-Conditions
 
