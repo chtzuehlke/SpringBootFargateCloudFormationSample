@@ -41,3 +41,11 @@ Under the hoods
 Steps
 
     ./teardown-dev.sh
+
+# FIXMEs
+
+- AWS CodeDeploy for Blue/Green deployment (as soon as this is supported for ECS by CloudFormation)
+- Security (-group) improvement: access to service only via load balancer
+- Load balancer: HTTPS listener
+- Add RDS to sample
+- ...
