@@ -6,13 +6,12 @@ Parameters:
     Type: AWS::EC2::VPC::Id
   Subnets:
     Type: "List<AWS::EC2::Subnet::Id>"
+  TargetGroup:
+    Type: String
+  DockerRepo:
+    Type: String
 
 Resources:
-  DockerRepo:
-    Type: AWS::ECR::Repository
-    Properties: 
-      RepositoryName: !Ref 'AWS::StackName'
-
   ECSExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -75,10 +74,6 @@ Resources:
            FromPort: 8080
            ToPort: 8080
            CidrIp: "0.0.0.0/0"
-        -  IpProtocol: "tcp"
-           FromPort: 80
-           ToPort: 80
-           CidrIp: "0.0.0.0/0"
       VpcId: !Ref VPC
 
   FargateService:
@@ -88,7 +83,7 @@ Resources:
       DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: 100
-      DesiredCount: 0
+      DesiredCount: 1
       LaunchType: "FARGATE"
       NetworkConfiguration: 
         AwsvpcConfiguration: 
@@ -98,52 +93,14 @@ Resources:
           Subnets: !Ref Subnets
       PlatformVersion: "LATEST"
       SchedulingStrategy: "REPLICA"
-#      ServiceName: !Ref 'AWS::StackName'
       TaskDefinition: !Ref TaskDefinition
-
-# FIXME: below: "chicken egg issue" (work-around: comment out LoadBalancers - create stack - push image - remove comment - update stack):
       LoadBalancers:
         - ContainerName: !Ref 'AWS::StackName'
           ContainerPort: 8080
           TargetGroupArn: !Ref TargetGroup
 
-  TargetGroup:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      HealthCheckIntervalSeconds: 30
-      HealthCheckPath: /
-      HealthCheckTimeoutSeconds: 5
-      UnhealthyThresholdCount: 4
-      HealthyThresholdCount: 2
-      Port: 8080
-      Protocol: HTTP
-      TargetGroupAttributes:
-        - Key: deregistration_delay.timeout_seconds
-          Value: 60 
-      TargetType: ip
-      VpcId: !Ref VPC
-  Listener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      DefaultActions:
-        - TargetGroupArn: !Ref TargetGroup
-          Type: forward
-      LoadBalancerArn: !Ref LoadBalancer
-      Port: 80
-      Protocol: HTTP
-  LoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      LoadBalancerAttributes:
-        - Key: idle_timeout.timeout_seconds
-          Value: 60
-      Scheme: internet-facing
-      SecurityGroups:
-        - !Ref SecurityGroup
-      Subnets: !Ref Subnets
-
 Outputs:
-  DockerRepo:
-    Value: !Ref DockerRepo
-  DockerRepoUrl:
-    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${DockerRepo}"
+  FargateCluster:
+    Value: !Ref FargateCluster
+  FargateService:
+    Value: !GetAtt FargateService.Name
