@@ -1,5 +1,9 @@
 # Sample: Spring Boot & Fargate & CloudFormation
 
+## Disclaimer
+
+- Not production ready (e.g. automation scripts w/o error handling)
+
 ## Pre-Conditions
 
 - AWS cli (installed, configured: sufficient IAM permissions)
