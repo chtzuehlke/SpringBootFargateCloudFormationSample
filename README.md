@@ -36,9 +36,9 @@ Steps
 Under the hoods
 
 - Remove docker images from docker regisry (AWS cli)
-- Create private docker registry (delete CloudFormation stack via AWS cli)
-- Create elastic load balancer (delete CloudFormation stack via AWS cli)
-- Create fargate service (delete CloudFormation stack via AWS cli)
+- Delete private docker registry (delete CloudFormation stack via AWS cli)
+- Delete elastic load balancer (delete CloudFormation stack via AWS cli)
+- Delete fargate service (delete CloudFormation stack via AWS cli)
 
 Steps
 
@@ -46,8 +46,9 @@ Steps
 
 ## FIXMEs
 
-- AWS CodeDeploy for Blue/Green deployment (as soon as this is supported for ECS by CloudFormation)
-- Security (-group) improvement: access to service only via load balancer
+- CI: Code Build
+- CD: AWS CodeDeploy for Blue/Green deployment (as soon as this is supported for ECS by CloudFormation)
+- Security (-group): service access only via load balancer
 - Load balancer: HTTPS listener
 - Add RDS to sample
 - ...
