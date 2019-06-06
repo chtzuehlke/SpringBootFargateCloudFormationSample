@@ -3,7 +3,7 @@
 - AWS cli (installed, configured: sufficient IAM permissions)
 - Bash (tested with macOS terminal)
 
-# Setup Development Environment
+# Setup Development Environment (approx. 60 USD/Month)
 
 Under the hoods
 
