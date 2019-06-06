@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A repo for a sample Spring Boot-based web workload container image
+
+Resources:
+  DockerRepo:
+    Type: AWS::ECR::Repository
+    Properties: 
+      RepositoryName: !Join [ '', [ !Ref 'AWS::StackName', '-repo' ] ]
+
+Outputs:
+  DockerRepo:
+    Value: !Ref DockerRepo
+  DockerRepoUrl:
+    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${DockerRepo}"
