@@ -8,7 +8,7 @@
 
 - AWS cli (installed & configured: sufficient IAM permissions)
 - Docker (running)
-- Bash (tested with macOS terminal)
+- Linux-like environment (bash, curl, ... - tested with macOS)
 
 ## Setup Development Environment (approx. 60 USD/Month)
 
