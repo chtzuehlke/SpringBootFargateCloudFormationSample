@@ -1,17 +1,17 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: A repo for a sample Spring Boot-based web workload container image
 
+Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  Subnets:
+    Type: "List<AWS::EC2::Subnet::Id>"
+
 Resources:
   DockerRepo:
     Type: AWS::ECR::Repository
     Properties: 
       RepositoryName: !Join [ '', [ !Ref 'AWS::StackName', '-repo' ] ]
-
-  TaskLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties: 
-      LogGroupName: !Join [ '', [ '/ecs/', !Ref 'AWS::StackName' ] ]
-      RetentionInDays: 7
 
   ECSExecutionRole:
     Type: AWS::IAM::Role
@@ -29,6 +29,12 @@ Resources:
         - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
       MaxSessionDuration: 3600
       Path: /service-role/
+
+  TaskLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: !Join [ '', [ '/ecs/', !Ref 'AWS::StackName' ] ]
+      RetentionInDays: 7
 
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -56,6 +62,40 @@ Resources:
           PortMappings:
             - ContainerPort: 8080
               Protocol: "tcp"
+
+  FargateCluster:
+    Type: AWS::ECS::Cluster
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: HTTP 8080
+      SecurityGroupIngress: 
+        -  IpProtocol: "tcp"
+           FromPort: 8080
+           ToPort: 8080
+           CidrIp: "0.0.0.0/0"
+      VpcId: !Ref VPC
+
+  FargateService:
+    Type: AWS::ECS::Service
+    Properties: 
+      Cluster: !Ref FargateCluster
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: 0
+      LaunchType: "FARGATE"
+      NetworkConfiguration: 
+        AwsvpcConfiguration: 
+          AssignPublicIp: "ENABLED"
+          SecurityGroups: 
+            - !Ref SecurityGroup
+          Subnets: !Ref Subnets
+      PlatformVersion: "LATEST"
+      SchedulingStrategy: "REPLICA"
+      ServiceName: !Ref 'AWS::StackName'
+      TaskDefinition: !Ref TaskDefinition
 
 Outputs:
   DockerRepo:
