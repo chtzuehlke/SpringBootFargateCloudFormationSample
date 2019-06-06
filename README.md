@@ -1,9 +1,11 @@
-# Pre-Conditions
+# Sample: Spring Boot & Fargate & CLoudFormation
+
+## Pre-Conditions
 
 - AWS cli (installed, configured: sufficient IAM permissions)
 - Bash (tested with macOS terminal)
 
-# Setup Development Environment (approx. 60 USD/Month)
+## Setup Development Environment (approx. 60 USD/Month)
 
 Under the hoods
 
@@ -17,7 +19,7 @@ Steps
 
     ./setup-dev.sh && ./curl-loop-dev.sh
 
-# Update Development Environment
+## Update Development Environment
 
 Under the hoods
 
@@ -29,7 +31,7 @@ Steps
 
     ./update-dev.sh
 
-# Teardown Development Environment
+## Teardown Development Environment
 
 Under the hoods
 
@@ -42,7 +44,7 @@ Steps
 
     ./teardown-dev.sh
 
-# FIXMEs
+## FIXMEs
 
 - AWS CodeDeploy for Blue/Green deployment (as soon as this is supported for ECS by CloudFormation)
 - Security (-group) improvement: access to service only via load balancer
