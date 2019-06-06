@@ -6,7 +6,8 @@
 
 ## Pre-Conditions
 
-- AWS cli (installed, configured: sufficient IAM permissions)
+- AWS cli (installed & configured: sufficient IAM permissions)
+- Docker (running)
 - Bash (tested with macOS terminal)
 
 ## Setup Development Environment (approx. 60 USD/Month)
