@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  Subnets:
+    Type: "List<AWS::EC2::Subnet::Id>"
+
+Resources:
+  LoadBalancerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: HTTP and HTTPS
+      SecurityGroupIngress: 
+        -  IpProtocol: "tcp"
+           FromPort: 80
+           ToPort: 80
+           CidrIp: "0.0.0.0/0"
+        -  IpProtocol: "tcp"
+           FromPort: 443
+           ToPort: 443
+           CidrIp: "0.0.0.0/0"
+      VpcId: !Ref VPC
+
+  ApplicationSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: HTTP 8080
+      SecurityGroupIngress: 
+        -  IpProtocol: "tcp"
+           FromPort: 8080
+           ToPort: 8080
+           SourceSecurityGroupId: !GetAtt LoadBalancerSG.GroupId
+      VpcId: !Ref VPC
+
+  DatabaseSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Postgres 5432
+      SecurityGroupIngress: 
+        -  IpProtocol: "tcp"
+           FromPort: 5432
+           ToPort: 5432
+           SourceSecurityGroupId: !GetAtt ApplicationSG.GroupId
+      VpcId: !Ref VPC
+
+Outputs:
+  LoadBalancerSG:
+    Value: !Ref LoadBalancerSG
+  ApplicationSG:
+    Value: !Ref ApplicationSG
+  DatabaseSG:
+    Value: !Ref DatabaseSG

@@ -1,6 +1,12 @@
 #!/bin/bash
 
-#FIXME error and retry logic, hehe
+#FIXME error- and retry logic - until then, execute this step-by-step
+
+echo Create Security Groups Stack
+./cf-create-network-dev.sh
+
+echo Wait for Security Groups Stack
+aws cloudformation wait stack-create-complete --stack-name samplewebworkload-net-dev
 
 echo Create Load Balancer Stack
 ./cf-create-lb-dev.sh

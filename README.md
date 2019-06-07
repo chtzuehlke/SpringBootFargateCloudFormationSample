@@ -22,14 +22,18 @@ Under the hoods
 
 Steps
 
-    ./setup-dev.sh && ./curl-loop-dev.sh
+    ./setup-dev.sh
 
-## Update Development Environment
+Verify
+
+    ./curl-loop-dev.sh
+
+## Application Deployment
 
 Under the hoods
 
-- Create docker image (maven & docker)
-- Upload docker image (AWS cli & docker)
+- Create new docker image (maven & docker)
+- Upload new docker image (AWS cli & docker)
 - Force new fargate task deployment (AWS cli)
 
 Steps
@@ -53,7 +57,5 @@ Steps
 
 - CI: Code Build
 - CD: AWS CodeDeploy for Blue/Green deployment (as soon as this is supported for ECS by CloudFormation)
-- Security (-group): service access only via load balancer
-- Load balancer: HTTPS listener
 - Add RDS to sample
 - ...

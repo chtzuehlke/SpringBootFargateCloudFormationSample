@@ -5,19 +5,16 @@ Parameters:
     Type: AWS::EC2::VPC::Id
   Subnets:
     Type: "List<AWS::EC2::Subnet::Id>"
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+  CertificateArn:
+    Type: String
+    Default: NONE
+
+Conditions: 
+  EnableTLS: !Not [ !Equals [ !Ref CertificateArn, "NONE" ]]
 
 Resources:
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: HTTP 80
-      SecurityGroupIngress: 
-        -  IpProtocol: "tcp"
-           FromPort: 80
-           ToPort: 80
-           CidrIp: "0.0.0.0/0"
-      VpcId: !Ref VPC
-
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -44,6 +41,19 @@ Resources:
       Port: 80
       Protocol: HTTP
 
+  TLSListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: EnableTLS
+    Properties:
+      Certificates: 
+        - CertificateArn: !Ref CertificateArn
+      DefaultActions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 443
+      Protocol: HTTPS
+
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -58,7 +68,5 @@ Resources:
 Outputs:
   TargetGroup:
     Value: !Ref TargetGroup
-  SecurityGroup:
-    Value: !Ref SecurityGroup
   LoadBalancer:
     Value: !GetAtt LoadBalancer.DNSName

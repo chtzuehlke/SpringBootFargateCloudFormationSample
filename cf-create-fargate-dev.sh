@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SG_ID=$(./cf-stack-output.sh samplewebworkload-net-dev ApplicationSG)
+
 ELB_TARGET_GROUP=$(./cf-stack-output.sh samplewebworkload-lb-dev TargetGroup)
 
 DOCKER_REPO_NAME=$(./cf-stack-output.sh samplewebworkload-repo-dev DockerRepo)
@@ -11,4 +13,5 @@ aws cloudformation create-stack --capabilities CAPABILITY_IAM --stack-name sampl
   ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
   ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID \
   ParameterKey=TargetGroup,ParameterValue=$ELB_TARGET_GROUP \
-  ParameterKey=DockerRepo,ParameterValue=$DOCKER_REPO_NAME
+  ParameterKey=DockerRepo,ParameterValue=$DOCKER_REPO_NAME \
+  ParameterKey=SecurityGroup,ParameterValue=$SG_ID
