@@ -42,6 +42,10 @@ Resources:
            FromPort: 5432
            ToPort: 5432
            SourceSecurityGroupId: !GetAtt ApplicationSG.GroupId
+        -  IpProtocol: "tcp"
+           FromPort: 3306
+           ToPort: 3306
+           SourceSecurityGroupId: !GetAtt ApplicationSG.GroupId           
       VpcId: !Ref VPC
 
 Outputs:

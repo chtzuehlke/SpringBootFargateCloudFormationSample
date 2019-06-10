@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  Subnets:
+    Type: "List<AWS::EC2::Subnet::Id>"
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+
+Resources:
+  DBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties: 
+      DBSubnetGroupDescription: db subnet group
+      SubnetIds: !Ref Subnets
+
+  DB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VPCSecurityGroups:
+      - Ref: SecurityGroup
+      AllocatedStorage: '5'
+      DBInstanceClass: db.t3.micro
+      Engine: MySQL
+      MasterUsername: masteruser
+      MasterUserPassword: "{{resolve:ssm-secure:dev.db.rand.pass:3}}"
+    DeletionPolicy: Delete
+
+Outputs:
+  DBIdentifier:
+    Value: !Ref DB
+  DBPort:
+    Value: !GetAtt DB.Endpoint.Address
+  DBAddress:
+    Value: !GetAtt DB.Endpoint.Port

@@ -12,6 +12,12 @@ Parameters:
     Type: String
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
+  DBIdentifier:
+    Type: String
+  DBPort:
+    Type: String
+  DBAddress:
+    Type: String
 
 Resources:
   ECSExecutionRole:
@@ -31,6 +37,31 @@ Resources:
       MaxSessionDuration: 3600
       Path: /service-role/
 
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ecs-tasks.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: !Sub 'TaskRole-${AWS::StackName}'
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Action:
+              - 'ssm:GetParameter'
+              Resource:
+              - 'arn:aws:ssm:eu-west-1:208464084183:parameter/dev.db.rand.pass'
+      MaxSessionDuration: 3600
+      Path: /service-role/
+
   TaskLogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
@@ -41,6 +72,7 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     Properties: 
       ExecutionRoleArn: !GetAtt ECSExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
       Cpu: "1024"
       Memory: "2048"
       Family: !Ref 'AWS::StackName'
@@ -63,6 +95,13 @@ Resources:
           PortMappings:
             - ContainerPort: 8080
               Protocol: "tcp"
+          Environment:
+            - Name: DBIdentifier
+              Value: !Ref DBIdentifier 
+            - Name: DBPort
+              Value: !Ref DBPort 
+            - Name: DBAddress
+              Value: !Ref DBAddress 
 
   FargateCluster:
     Type: AWS::ECS::Cluster

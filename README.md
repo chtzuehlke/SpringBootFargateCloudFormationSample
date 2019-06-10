@@ -55,7 +55,8 @@ Steps
 
 ## FIXMEs
 
+- Remove hard-coded CertificateArn
+- Remove hard-coded SSM parameter
 - CI: Code Build
 - CD: AWS CodeDeploy for Blue/Green deployment (as soon as this is supported for ECS by CloudFormation)
-- Add RDS to sample
 - ...
