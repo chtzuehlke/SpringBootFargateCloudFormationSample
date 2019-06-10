@@ -8,6 +8,9 @@ echo Create Security Groups Stack
 echo Wait for Security Groups Stack
 aws cloudformation wait stack-create-complete --stack-name samplewebworkload-net-dev
 
+echo Create Database Stack
+./cf-create-db-dev.sh
+
 echo Create Load Balancer Stack
 ./cf-create-lb-dev.sh
 
@@ -25,6 +28,9 @@ echo Push Image to Docker Registry
 
 echo Wait for Load Balancer Stack
 aws cloudformation wait stack-create-complete --stack-name samplewebworkload-lb-dev
+
+echo Wait for Database Stack
+aws cloudformation wait stack-create-complete --stack-name samplewebworkload-db-dev
 
 echo Create Fargate Stack
 ./cf-create-fargate-dev.sh

@@ -19,6 +19,7 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties:
       DBSubnetGroupName: !Ref DBSubnetGroup
+      DBName: db
       VPCSecurityGroups:
       - Ref: SecurityGroup
       AllocatedStorage: '5'

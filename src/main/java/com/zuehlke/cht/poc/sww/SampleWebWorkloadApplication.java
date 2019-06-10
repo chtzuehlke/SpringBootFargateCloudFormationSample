@@ -36,14 +36,15 @@ public class SampleWebWorkloadApplication {
 	@Bean
     public DataSource getDataSource() {
 		AWSSimpleSystemsManagement ssm = AWSSimpleSystemsManagementClientBuilder.defaultClient();
-		String pass = ssm.getParameter(new GetParameterRequest() //FIXME ensure task has sufficient - and no more than sufficient - permissions
+		String pass = ssm.getParameter(new GetParameterRequest()
 					.withName("dev.db.rand.pass")
 					.withWithDecryption(true)
 				).getParameter().getValue();
 		
-        DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
+        @SuppressWarnings("rawtypes")
+		DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
         dataSourceBuilder.driverClassName("com.mysql.cj.jdbc.Driver");
-        dataSourceBuilder.url("jdbc:mysql://"+dbAddress+":" + dbPort + "/");
+        dataSourceBuilder.url("jdbc:mysql://"+dbAddress+":" + dbPort + "/db");
         dataSourceBuilder.username("masteruser");
         dataSourceBuilder.password(pass);
         return dataSourceBuilder.build();
@@ -53,7 +54,7 @@ public class SampleWebWorkloadApplication {
     public String home() {
 		
 		
-        return "Hello Docker World 6: " + jdbcTemplate.queryForObject("select 1 from dual", Integer.class);
+        return "Hello Docker World 6: " + jdbcTemplate.queryForObject("select bar from foo", Integer.class);
     }
 	
 	public static void main(String[] args) {
