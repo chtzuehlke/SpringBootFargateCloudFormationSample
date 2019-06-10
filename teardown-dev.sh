@@ -6,5 +6,6 @@ aws ecr batch-delete-image --repository-name $(./cf-stack-output.sh samplewebwor
 
 aws cloudformation delete-stack --stack-name samplewebworkload-fargatew-dev
 aws cloudformation delete-stack --stack-name samplewebworkload-lb-dev
+aws cloudformation delete-stack --stack-name samplewebworkload-db-dev
 aws cloudformation delete-stack --stack-name samplewebworkload-repo-dev
 aws cloudformation delete-stack --stack-name samplewebworkload-net-dev

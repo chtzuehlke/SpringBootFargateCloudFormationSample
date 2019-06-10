@@ -3,6 +3,7 @@
 ## Disclaimer
 
 - Not production ready (e.g. automation scripts w/o error handling)
+- see FIXMEs below
 
 ## Pre-Conditions
 
@@ -55,8 +56,5 @@ Steps
 
 ## FIXMEs
 
-- Remove hard-coded CertificateArn
-- Remove hard-coded SSM parameter
-- CI: Code Build
-- CD: AWS CodeDeploy for Blue/Green deployment (as soon as this is supported for ECS by CloudFormation)
-- ...
+- Remove hard-coded certificate arn
+- Remove hard-coded SSM resource
