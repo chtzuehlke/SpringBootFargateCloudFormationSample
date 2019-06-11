@@ -12,9 +12,9 @@ Let's explore the "AWS Fargte"-way to operate a Java web application:
 ![Security Groups](drawio/securitygroups.png)
  
 Requirements
-- End user's web browser can only communicate (HTTPS requests to port 443) with the load balancer
-- Only the load balancer can communicate (HTTP requests to port 8080) to the web application
-- Only the web application can communicate (via MySQL protocol, port 3306) to the database
+- End user's web browser can only communicate with the load balancer (HTTPS, port 443)
+- Only the load balancer can communicate to the web application (HTTP, port 8080)
+- Only the web application can communicate to the database (MySQL, port 3306)
 
 Let's setup VPC Security Groups to meet these requirements. 
 
