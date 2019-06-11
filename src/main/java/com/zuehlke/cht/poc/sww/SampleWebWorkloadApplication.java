@@ -47,7 +47,7 @@ public class SampleWebWorkloadApplication {
         @SuppressWarnings("rawtypes")
 		DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
         dataSourceBuilder.driverClassName("com.mysql.cj.jdbc.Driver");
-        dataSourceBuilder.url("jdbc:mysql://"+dbAddress+":" + dbPort + "/db");
+        dataSourceBuilder.url("jdbc:mysql://" + dbAddress + ":" + dbPort + "/db");
         dataSourceBuilder.username("masteruser");
         dataSourceBuilder.password(pass);
         return dataSourceBuilder.build();
@@ -57,7 +57,7 @@ public class SampleWebWorkloadApplication {
     public String home() {
 		
 		
-        return "Hello Docker World 6: " + jdbcTemplate.queryForObject("select bar from foo", Integer.class);
+        return "Hello Docker World: " + jdbcTemplate.queryForObject("select bar from foo", Integer.class);
     }
 	
 	public static void main(String[] args) {

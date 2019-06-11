@@ -1,25 +1,31 @@
-# Sample: Spring Boot & Fargate & CloudFormation
+# Sample: Spring Boot & Fargate & RDS & CloudFormation
 
 ## Disclaimer
 
 - Not production ready (e.g. automation scripts w/o error handling)
-- see FIXMEs below
+- See also FIXMEs (below)
 
 ## Pre-Conditions
 
-- AWS cli (installed & configured: sufficient IAM permissions)
-- Docker (running)
-- Linux-like environment (bash, curl, ... - tested with macOS)
+- AWS cli installed & configured (sufficient IAM permissions, default region)
+- Default VPC present in default AWS region
+- Docker running
+- Linux-like environment (bash, curl, ...) - tested with macOS
+- openssl installed
+- jq installed
 
-## Setup Development Environment (approx. 60 USD/Month)
+## Setup Development Environment (approx. 75 USD/Month)
 
 Under the hoods
 
-- Create new private docker registry (new CloudFormation stack via AWS cli)
+- Create new Elastic Container Registry (new CloudFormation stack via AWS cli)
 - Create docker image (maven & docker)
 - Upload docker image (AWS cli & docker)
-- Create new elastic load balancer (new CloudFormation stack via AWS cli)
-- Create new fargate service with 1 running task (new CloudFormation stack via AWS cli)
+- Create Security Groups (new CloudFormation stack via AWS cli)
+- Create new Elastic Load Balancer (new CloudFormation stack via AWS cli)
+- Create new DB password parameter (random password) in SSM Parameter Store (AWS cli)
+- Create new DS MySQL DB instance (new CloudFormation stack via AWS cli)
+- Create new Fargate Service with 1 running task with 1 container with DB access (new CloudFormation stack via AWS cli)
 
 Steps
 
@@ -49,6 +55,8 @@ Under the hoods
 - Delete private docker registry (delete CloudFormation stack via AWS cli)
 - Delete elastic load balancer (delete CloudFormation stack via AWS cli)
 - Delete fargate service (delete CloudFormation stack via AWS cli)
+- Delete RDS instance w/o backup (delete CloudFormation stack via AWS cli)
+- ...
 
 Steps
 
@@ -57,3 +65,4 @@ Steps
 ## FIXMEs
 
 - Remove hard-coded certificate arn
+- mysql access via TLS

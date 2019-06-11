@@ -13,13 +13,13 @@ Resources:
       GroupDescription: HTTP and HTTPS
       SecurityGroupIngress: 
         -  IpProtocol: "tcp"
-           FromPort: 80
-           ToPort: 80
-           CidrIp: "0.0.0.0/0"
-        -  IpProtocol: "tcp"
            FromPort: 443
            ToPort: 443
            CidrIp: "0.0.0.0/0"
+        -  IpProtocol: "tcp"
+           FromPort: 80
+           ToPort: 80
+           CidrIp: "0.0.0.0/0"           
       VpcId: !Ref VPC
 
   ApplicationSG:
@@ -36,12 +36,8 @@ Resources:
   DatabaseSG:
     Type: AWS::EC2::SecurityGroup
     Properties: 
-      GroupDescription: Postgres 5432
+      GroupDescription: MySQL
       SecurityGroupIngress: 
-        -  IpProtocol: "tcp"
-           FromPort: 5432
-           ToPort: 5432
-           SourceSecurityGroupId: !GetAtt ApplicationSG.GroupId
         -  IpProtocol: "tcp"
            FromPort: 3306
            ToPort: 3306
