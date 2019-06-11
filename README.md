@@ -3,7 +3,6 @@
 ## Disclaimer
 
 - Not production ready (e.g. automation scripts w/o error handling)
-- See also FIXMEs (below)
 
 ## Pre-Conditions
 
@@ -61,8 +60,3 @@ Under the hoods
 Steps
 
     ./teardown-dev.sh
-
-## FIXMEs
-
-- Remove hard-coded certificate arn
-- mysql access via TLS

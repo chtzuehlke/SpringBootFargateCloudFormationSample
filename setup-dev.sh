@@ -2,6 +2,8 @@
 
 #FIXME error- and retry logic - until then, execute this step-by-step
 
+date > setup-dev-duration.txt
+
 echo Create Security Groups Stack
 ./cf-create-network-dev.sh
 
@@ -42,3 +44,5 @@ echo Wait Create Fargate Stack
 aws cloudformation wait stack-create-complete --stack-name samplewebworkload-fargatew-dev
 
 echo Done
+
+date >> setup-dev-duration.txt
