@@ -58,8 +58,8 @@ CloudFormation yaml template (some details omitted):
 
 Create the CloudFormation stack via AWS cli:
 
-    export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
-    export SUBNET_IDS=subnet-4ebb1628,subnet-40d26008,subnet-572fc30d #your subnet ids
+    export DEFAULT_VPC_ID="vpc-c2..." #your vpc id 
+    export SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-net-dev \
@@ -97,7 +97,7 @@ CloudFormation yaml template (some details omitted):
                 Protocol: HTTP
                 TargetGroupAttributes:
                     - Key: deregistration_delay.timeout_seconds
-                    Value: 60 
+                      Value: 60 
                 TargetType: ip
                 VpcId: !Ref VPC
 
@@ -109,7 +109,7 @@ CloudFormation yaml template (some details omitted):
                     - CertificateArn: !Ref CertificateArn
                 DefaultActions:
                     - TargetGroupArn: !Ref TargetGroup
-                    Type: forward
+                      Type: forward
                 LoadBalancerArn: !Ref LoadBalancer
                 Port: 443
                 Protocol: HTTPS
@@ -119,7 +119,7 @@ CloudFormation yaml template (some details omitted):
             Properties:
                 LoadBalancerAttributes:
                     - Key: idle_timeout.timeout_seconds
-                    Value: 60
+                      Value: 60
                 Scheme: internet-facing
                 SecurityGroups:
                     - !Ref SecurityGroup
@@ -128,10 +128,10 @@ CloudFormation yaml template (some details omitted):
 
 Create the CloudFormation stack via AWS cli:
 
-    export SG_ID="sg-..." #your security group id
-    export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
-    export SUBNET_IDS=subnet-4ebb1628,subnet-40d26008,subnet-572fc30d #your subnet ids
-    export SSL_CERT_ARN="arn:aws:acm:eu-west-1:208464084183:certificate/73d7cb1d-3137-4182-86c5-c01a7578e595" #your ACM cert ARN
+    export SG_ID="sg-34..." #your security group id
+    export DEFAULT_VPC_ID="vpc-c2..." #your vpc id 
+    export SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
+    export SSL_CERT_ARN="arn:aws:acm:eu-west-1:20...:certificate/73..." #your ACM cert ARN
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-lb-dev \
