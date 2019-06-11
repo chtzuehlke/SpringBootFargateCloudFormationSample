@@ -72,14 +72,14 @@ Create the CloudFormation stack via AWS cli:
 ![Load Balancer](drawio/loadbalancer.png)
  
 Requirements:
-- Load balancer must be reachable via a custom domain name (e.g. https://www.mydomain.com)
+- Load balancer must be reachable via a custom domain name
 - Load balancer must terminate HTTPS traffic
 - Load balancer must forward traffic to our application via HTTP
 
 A properly configured Application Load Balancer meets the requirements:
-- TLSListeer: Terminates HTTPS traffic and is associated with a (manually created) AWS Certificate Manager TLS certificate (e.g. for www.mydomain.com)
-- TargetGroup: Forwards all traffic to the application via HTTP
-- A (manually created) Route53 CNAME record can refer the CNAME of the Application Load Balancer
+- TLSListeer: terminates HTTPS traffic and is associated with a previosly created AWS Certificate Manager TLS certificate
+- TargetGroup: forwards all traffic to the application via HTTP
+- A Route53 CNAME record can refer the CNAME of the Application Load Balancer in a subsequent step
 
 CloudFormation yaml template (some details omitted):
 
