@@ -10,7 +10,7 @@
 - AWS cli installed & configured (sufficient IAM permissions, default region)
 - Default VPC present in default AWS region
 - Docker running
-- Linux-like environment (bash, curl, ...) - tested with macOS
+- Linux-like environment (bash, curl, sed, ...) - tested with macOS
 - openssl installed
 - jq installed
 
