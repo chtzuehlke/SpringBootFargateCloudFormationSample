@@ -18,7 +18,7 @@ Requirements
 
 Properly configured VPC Security Groups meet these requirements.
 
-CloudFormation yaml template (some details omitted):
+Define the CloudFormation yaml template (some details omitted):
 
     ...
     Resources:
@@ -33,7 +33,7 @@ CloudFormation yaml template (some details omitted):
                    CidrIp: "0.0.0.0/0"
                    VpcId: !Ref VPC
 
-    ApplicationSG:
+        ApplicationSG:
             Type: AWS::EC2::SecurityGroup
             Properties: 
             GroupDescription: HTTP 8080
@@ -54,15 +54,16 @@ CloudFormation yaml template (some details omitted):
                    ToPort: 3306
                    SourceSecurityGroupId: !GetAtt ApplicationSG.GroupId           
             VpcId: !Ref VPC
-    ...
+        ...
 
-Now, let's create a CloudFormation stack based on this template (via AWS command line interface):
+Create the CloudFormation stack (via AWS cli):
 
     export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
     export SUBNET_IDS=subnet-4ebb1628,subnet-40d26008,subnet-572fc30d #your subnet ids
-    aws cloudformation create-stack --stack-name samplewebworkload-net-dev --template-body file://network-cf.yaml --parameters \
-        ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
-        ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID
+    aws cloudformation create-stack --stack-name samplewebworkload-net-dev \
+        --template-body file://network-cf.yaml 
+        --parameters ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
+                     ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID
 
 ## Load Balancer
 
