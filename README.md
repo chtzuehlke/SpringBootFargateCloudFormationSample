@@ -1,4 +1,4 @@
-# Let's play with Spring Boot and AWS Fargate (Deep Dive)
+# Let's play with Spring Boot and AWS Fargate
 
 ![High Level Overview](drawio/overview.png)
 
