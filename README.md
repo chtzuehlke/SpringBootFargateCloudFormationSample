@@ -7,7 +7,42 @@ Target Architecture:
 - Web application: containerized Java (Spring Boot-) application running as a AWS Fargate service
 - Database: Amazon RDS for MySQL instance
 
-## Network Security
+## All automated - from zero to cloud in 13'
+
+### Pre-Conditions
+
+- AWS cli installed & configured (sufficient IAM permissions, default region configured)
+- Default VPC is present in the default AWS region
+- Docker is running
+- Linux-like environment or macOS (bash, curl, sed, ...) 
+- openssl installed
+- jq installed
+- General advice: read - and understand - all shell scripts and CloudFormation yaml templates before executing them
+
+### Automated dev env setup (ECR + ALB + Fargate Service + RDS)
+
+Disclaimer:
+- Not production ready yet (e.g. automation scripts w/o error handling)
+- Costs (until teardown): approx. 75 USD/month
+
+    ./setup-dev.sh
+    ./curl-loop-dev.sh
+
+### Deploy new application version
+
+    ./update-dev.sh
+
+### Automated dev env teardown (delete all stacks/resources)
+
+Disclaimer:
+- Not production ready yet (e.g. automation scripts w/o error handling)
+- All data lost!
+
+    ./teardown-dev.sh
+
+## Behind the scenes (CloudFormation and AWS cli)
+
+### Network Security
 
 ![Security Groups](drawio/securitygroups.png)
  
@@ -67,7 +102,7 @@ Create the CloudFormation stack via AWS cli:
         --parameters ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
                      ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID
 
-## Load Balancer
+### Load Balancer
 
 ![Load Balancer](drawio/loadbalancer.png)
  
@@ -141,7 +176,7 @@ Create the CloudFormation stack via AWS cli:
                      ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
                      ParameterKey=CertificateArn,ParameterValue="$SSL_CERT_ARN"
 
-## Database
+### Database
 
 ![Load Balancer](drawio/database.png)
  
@@ -188,7 +223,7 @@ Create the CloudFormation stack via AWS cli:
                      ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
                      ParameterKey=MasterUserPassword,ParameterValue=$DB_KEY
 
-## Privte Docker Registry
+### Privte Docker Registry
 
 ![Private Docker Registry](drawio/deployment.png)
  
@@ -212,7 +247,7 @@ Create the CloudFormation stack via AWS cli:
         --stack-name samplewebworkload-repo-dev \
         --template-body file://repo-cf.yaml
 
-## Application
+### Spring Boot Application
 
 Requirements:
 - Run dockerized Spring Boot web application
@@ -370,48 +405,6 @@ Create the CloudFormation stack via AWS cli:
                      ParameterKey=DBAddress,ParameterValue=$DB_PORT \
                      ParameterKey=DBPassSSMName,ParameterValue="dev.db.rand.pass"
 
-# Spring Boot and AWS Fargate (in 13' from 0 to cloud)
-
-## Pre-Conditions
-
-- AWS cli installed & configured (sufficient IAM permissions, default region)
-- Default VPC present in default AWS region
-- Docker running
-- Linux-like environment (bash, curl, sed, ...)
-- openssl installed
-- jq installed
-- ...
-
-## Setup development environment (ECR + ALB + Fargate Service + RDS)
-
-Disclaimer:
-- Not production ready yet (e.g. automation scripts w/o error handling)
-- Setup duration: approx. 13'
-- Costs (until teardown): approx. 75 USD/month
-
-Steps:
-
-    ./setup-dev.sh
-
-Verify:
-
-    ./curl-loop-dev.sh
-
-## Deploy new application version
-
-Steps:
-
-    ./update-dev.sh
-
-## Teardown development environment
-
-Disclaimer:
-- Not production ready yet (e.g. automation scripts w/o error handling)
-
-Steps:
-
-    ./teardown-dev.sh
-
-# AWS Infrastructure Details
+## AWS Infrastructure
 
 ![Infrastructure Details](drawio/alb-fargate-rds-ssm.png)
