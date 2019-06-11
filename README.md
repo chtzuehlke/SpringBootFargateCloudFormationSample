@@ -1,8 +1,214 @@
-# Sample: Spring Boot & Fargate & RDS & CloudFormation
+# Let's play with Spring Boot and AWS Fargate (Deep Dive)
 
-## Disclaimer
+![High Level Overview](drawio/overview.png)
 
-- Not production ready (e.g. automation scripts w/o error handling)
+Let's explore the "AWS Fargte"-way to operate a Java web application:
+- Load balancer: Application Load Balancer (with TLS-termination)
+- Web application: Containerized Java (Spring Boot) application running as a AWS Fargate service
+- Database: Amazon RDS for MySQL instance
+
+## "Firewall"
+
+![Security Groups](drawio/securitygroups.png)
+ 
+Requirements
+- End user's web browser can only communicate (HTTPS requests to port 443) with the load balancer
+- Only the load balancer can communicate (HTTP requests to port 8080) to the web application
+- Only the web application can communicate (via MySQL protocol, port 3306) to the database
+
+Let's setup VPC Security Groups to meet these requirements. 
+
+First, create a CloudFormation yaml template (some details omitted):
+
+    ...
+    Resources:
+        LoadBalancerSG:
+            Type: AWS::EC2::SecurityGroup
+            Properties: 
+            GroupDescription: HTTPS
+            SecurityGroupIngress: 
+                -  IpProtocol: "tcp"
+                   FromPort: 443
+                   ToPort: 443
+                   CidrIp: "0.0.0.0/0"
+                   VpcId: !Ref VPC
+
+    ApplicationSG:
+            Type: AWS::EC2::SecurityGroup
+            Properties: 
+            GroupDescription: HTTP 8080
+            SecurityGroupIngress: 
+                -  IpProtocol: "tcp"
+                   FromPort: 8080
+                   ToPort: 8080
+                   SourceSecurityGroupId: !GetAtt LoadBalancerSG.GroupId
+            VpcId: !Ref VPC
+
+        DatabaseSG:
+            Type: AWS::EC2::SecurityGroup
+            Properties: 
+            GroupDescription: MySQL
+            SecurityGroupIngress: 
+                -  IpProtocol: "tcp"
+                   FromPort: 3306
+                   ToPort: 3306
+                   SourceSecurityGroupId: !GetAtt ApplicationSG.GroupId           
+            VpcId: !Ref VPC
+    ...
+
+Now, let's create a CloudFormation stack based on this template (via AWS command line interface):
+
+    export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
+    export SUBNET_IDS=subnet-4ebb1628,subnet-40d26008,subnet-572fc30d #your subnet ids
+    aws cloudformation create-stack --stack-name samplewebworkload-net-dev --template-body file://network-cf.yaml --parameters \
+        ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
+        ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID
+
+## Load Balancer
+
+![Load Balancer](drawio/loadbalancer.png)
+ 
+Requirements
+- Load balancer must be reachable via a custom domain name
+- Load balancer must terminate HTTPS traffic
+- Load balancer must forward traffic to our application via HTTP
+
+Let's setup an Application Load Balancer to meet these requirements:
+- TLSListeer: Setup to terminate HTTPS traffic (will be associated with a - manually created - AWS Certificate Manager TLS certificate)
+- TargetGroup: Setup to forward all traffic to or application
+- Also create a Route53 CNAME record which points to the CNAME of the Application Load Balancer (manual)
+
+First, create a CloudFormation yaml template (some details omitted):
+
+  ...
+  Resources:
+    TargetGroup:
+        Type: AWS::ElasticLoadBalancingV2::TargetGroup
+        Properties:
+            HealthCheckIntervalSeconds: 30
+            HealthCheckPath: /
+            HealthCheckTimeoutSeconds: 5
+            UnhealthyThresholdCount: 4
+            HealthyThresholdCount: 2
+            Port: 8080
+            Protocol: HTTP
+            TargetGroupAttributes:
+                - Key: deregistration_delay.timeout_seconds
+                  Value: 60 
+            TargetType: ip
+            VpcId: !Ref VPC
+
+    TLSListener:
+        Type: AWS::ElasticLoadBalancingV2::Listener
+        Condition: EnableTLS
+        Properties:
+            Certificates: 
+                - CertificateArn: !Ref CertificateArn
+            DefaultActions:
+                - TargetGroupArn: !Ref TargetGroup
+                Type: forward
+            LoadBalancerArn: !Ref LoadBalancer
+            Port: 443
+            Protocol: HTTPS
+
+    LoadBalancer:
+        Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+        Properties:
+            LoadBalancerAttributes:
+                - Key: idle_timeout.timeout_seconds
+                  Value: 60
+            Scheme: internet-facing
+            SecurityGroups:
+                - !Ref SecurityGroup
+            Subnets: !Ref Subnets
+    ...
+
+Now, let's create a CloudFormation stack based on this template (via AWS command line interface):
+
+    export SG_ID="sg-..." #your security group id
+    export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
+    export SUBNET_IDS=subnet-4ebb1628,subnet-40d26008,subnet-572fc30d #your subnet ids
+    export SSL_CERT_ARN="arn:aws:acm:eu-west-1:208464084183:certificate/73d7cb1d-3137-4182-86c5-c01a7578e595" #your ACM cert ARN
+    aws cloudformation create-stack --stack-name samplewebworkload-lb-dev --template-body file://lb-cf.yaml --parameters \
+        ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
+        ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID \
+        ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
+        ParameterKey=CertificateArn,ParameterValue="$SSL_CERT_ARN"
+
+## Database
+
+![Load Balancer](drawio/database.png)
+ 
+Requirements
+- Managed MySQL database without undifferientiated heavy lifting (e.g. OS & RDBMS security patching)
+
+Let's setup an Amazon RDS for MySQL database instance meet these requirements.
+
+First, create a CloudFormation yaml template (some details omitted):
+
+  ...
+  Resources:
+    DBSubnetGroup:
+        Type: "AWS::RDS::DBSubnetGroup"
+        Properties: 
+            DBSubnetGroupDescription: db subnet group
+            SubnetIds: !Ref Subnets
+
+    DB:
+        Type: AWS::RDS::DBInstance
+        Properties:
+            DBSubnetGroupName: !Ref DBSubnetGroup
+            DBName: db
+            VPCSecurityGroups:
+                - Ref: SecurityGroup
+            AllocatedStorage: '5'
+            DBInstanceClass: db.t3.micro
+            Engine: MySQL
+            MasterUsername: masteruser
+            MasterUserPassword: !Ref MasterUserPassword
+            DeletionPolicy: Delete
+    ...
+
+Now, let's create a CloudFormation stack based on this template (via AWS command line interface):
+
+    export SG_ID="sg-..." #your security group id
+    export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
+    export SUBNET_IDS=subnet-4ebb1628,subnet-40d26008,subnet-572fc30d #your subnet ids
+    aws cloudformation create-stack --stack-name samplewebworkload-db-dev --template-body file://db-cf.yaml --parameters \
+        ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
+        ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
+        ParameterKey=MasterUserPassword,ParameterValue=$(./ssm-get-dbpass.sh | jq -r ".Parameter.Value")
+
+## Application Deployment
+
+![Private Docker Registry](drawio/loadbalancer.png)
+ 
+Requirements
+- Deploy new app by pushing a new image to a private docker registry
+
+Let's create a Elastic Container Registry to meet (almost) all requirements.
+
+First, create a CloudFormation yaml template (some details omitted):
+
+    ...
+    Resources:
+    DockerRepo:
+        Type: AWS::ECR::Repository
+        Properties: 
+            RepositoryName: !Ref 'AWS::StackName'
+    ...
+
+Now, let's create a CloudFormation stack based on this template (via AWS command line interface):
+
+    aws cloudformation create-stack --stack-name samplewebworkload-repo-dev --template-body file://repo-cf.yaml
+
+## Application
+
+...
+
+# Let's play with Spring Boot and AWS Fargate (in 13' from 0 to production)
+
+Disclaimer: not production ready (e.g. automation scripts w/o error handling)
 
 ## Pre-Conditions
 
@@ -63,4 +269,4 @@ Steps
 
 ## Overview
 
-![Overview](drawio/alb-fargate-rds-ssm.png)
+![Infrastructure Details](drawio/alb-fargate-rds-ssm.png)
