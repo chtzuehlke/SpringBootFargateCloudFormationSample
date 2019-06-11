@@ -1,6 +1,5 @@
 #!/bin/bash
 
-DB_ID=$(./cf-stack-output.sh samplewebworkload-db-dev DBIdentifier)
 DB_ADDR=$(./cf-stack-output.sh samplewebworkload-db-dev DBAddress)
 DB_PORT=$(./cf-stack-output.sh samplewebworkload-db-dev DBPort)
 
@@ -19,7 +18,6 @@ aws cloudformation create-stack --capabilities CAPABILITY_IAM --stack-name sampl
   ParameterKey=TargetGroup,ParameterValue=$ELB_TARGET_GROUP \
   ParameterKey=DockerRepo,ParameterValue=$DOCKER_REPO_NAME \
   ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
-  ParameterKey=DBIdentifier,ParameterValue=$DB_ID \
   ParameterKey=DBPort,ParameterValue=$DB_ADDR \
   ParameterKey=DBAddress,ParameterValue=$DB_PORT \
   ParameterKey=DBPassSSMName,ParameterValue="dev.db.rand.pass"

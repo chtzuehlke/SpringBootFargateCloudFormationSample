@@ -128,10 +128,10 @@ CloudFormation yaml template (some details omitted):
 
 Create the CloudFormation stack via AWS cli:
 
-    export SG_ID="sg-12..." #your security group id
-    export DEFAULT_VPC_ID="vpc-c2..." #your vpc id 
-    export SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
-    export SSL_CERT_ARN="arn:aws:acm:eu-west-1:20...:certificate/73..." #your ACM cert ARN
+    SG_ID="sg-12..." #your security group id
+    DEFAULT_VPC_ID="vpc-c2..." #your vpc id 
+    SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
+    SSL_CERT_ARN="arn:aws:acm:eu-west-1:20...:certificate/73..." #your ACM cert ARN
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-lb-dev \
@@ -176,10 +176,10 @@ CloudFormation yaml template (some details omitted):
 
 Create the CloudFormation stack via AWS cli:
 
-    export SG_ID="sg-34..." #your security group id
-    export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
-    export SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
-    export DB_KEY="..." #your secret key
+    SG_ID="sg-34..." #your security group id
+    DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
+    SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
+    DB_KEY="..." #your secret key
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-db-dev \
@@ -276,14 +276,13 @@ CloudFormation yaml template (some details omitted):
                 MaxSessionDuration: 3600
                 Path: /service-role/
 
-        # Required to read from AWS Systems Manager Parameter Store
         TaskLogGroup:
             Type: AWS::Logs::LogGroup
             Properties: 
                 LogGroupName: !Join [ '', [ '/ecs/', !Ref 'AWS::StackName' ] ]
                 RetentionInDays: 7
 
-        # Spring Boot app task definition (ref to :latest image simple deployment in dev) and env-specific configuration
+        # Spring Boot app task definition & configuration (:latest for simple deployment in dev)
         TaskDefinition:
             Type: AWS::ECS::TaskDefinition
             Properties: 
@@ -349,7 +348,27 @@ CloudFormation yaml template (some details omitted):
 
 Create the CloudFormation stack via AWS cli:
 
+    DB_ADDR="localhost" #your RDS host
+    DB_PORT=3306 #your RDS port
+    SG_ID="sg-34..." #your security group id
+    ELB_TARGET_GROUP="..." #your ALB target group id
+    DOCKER_REPO_NAME="..." #your ECR registry name
+    DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
+    SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
 
+    aws cloudformation create-stack \
+        --capabilities CAPABILITY_IAM \
+        --stack-name samplewebworkload-fargatew-dev \
+        --template-body file://fargate-cf.yaml \
+        --parameters ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
+                     ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID \
+                     ParameterKey=TargetGroup,ParameterValue=$ELB_TARGET_GROUP \
+                     ParameterKey=DockerRepo,ParameterValue=$DOCKER_REPO_NAME \
+                     ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
+                     ParameterKey=DBIdentifier,ParameterValue=$DB_ID \
+                     ParameterKey=DBPort,ParameterValue=$DB_ADDR \
+                     ParameterKey=DBAddress,ParameterValue=$DB_PORT \
+                     ParameterKey=DBPassSSMName,ParameterValue="dev.db.rand.pass"
 
 # Spring Boot and AWS Fargate (in 13' from 0 to cloud)
 

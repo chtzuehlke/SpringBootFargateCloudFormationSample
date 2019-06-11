@@ -12,8 +12,6 @@ Parameters:
     Type: String
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
-  DBIdentifier:
-    Type: String
   DBPort:
     Type: String
   DBAddress:
