@@ -151,28 +151,28 @@ An Amazon RDS for MySQL database instance meets the requirements.
 
 CloudFormation yaml template (some details omitted):
 
-  ...
-  Resources:
-    DBSubnetGroup:
-        Type: "AWS::RDS::DBSubnetGroup"
-        Properties: 
-            DBSubnetGroupDescription: db subnet group
-            SubnetIds: !Ref Subnets
-
-    DB:
-        Type: AWS::RDS::DBInstance
-        Properties:
-            DBSubnetGroupName: !Ref DBSubnetGroup
-            DBName: db
-            VPCSecurityGroups:
-                - Ref: SecurityGroup
-            AllocatedStorage: '5'
-            DBInstanceClass: db.t3.micro
-            Engine: MySQL
-            MasterUsername: masteruser
-            MasterUserPassword: !Ref MasterUserPassword
-            DeletionPolicy: Delete
     ...
+    Resources:
+        DBSubnetGroup:
+            Type: "AWS::RDS::DBSubnetGroup"
+            Properties: 
+                DBSubnetGroupDescription: db subnet group
+                SubnetIds: !Ref Subnets
+
+        DB:
+            Type: AWS::RDS::DBInstance
+            Properties:
+                DBSubnetGroupName: !Ref DBSubnetGroup
+                DBName: db
+                VPCSecurityGroups:
+                    - Ref: SecurityGroup
+                AllocatedStorage: '5'
+                DBInstanceClass: db.t3.micro
+                Engine: MySQL
+                MasterUsername: masteruser
+                MasterUserPassword: !Ref MasterUserPassword
+                DeletionPolicy: Delete
+        ...
 
 Create the CloudFormation stack via AWS cli:
 
