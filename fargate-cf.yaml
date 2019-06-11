@@ -22,6 +22,7 @@ Parameters:
     Type: String
 
 Resources:
+  # Required for CloudWatch logging, amongst others
   ECSExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -39,6 +40,7 @@ Resources:
       MaxSessionDuration: 3600
       Path: /service-role/
 
+  # Required to read secure strings in AWS Systems Manager Parameter Store
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
@@ -64,12 +66,14 @@ Resources:
       MaxSessionDuration: 3600
       Path: /service-role/
 
+  # Required to read from AWS Systems Manager Parameter Store
   TaskLogGroup:
     Type: AWS::Logs::LogGroup
     Properties: 
       LogGroupName: !Join [ '', [ '/ecs/', !Ref 'AWS::StackName' ] ]
       RetentionInDays: 7
 
+  # Spring Boot app task definition (ref to :latest image simple deployment in dev) and env-specific configuration
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties: 
@@ -108,6 +112,7 @@ Resources:
   FargateCluster:
     Type: AWS::ECS::Cluster
 
+  # Running service (with one task with one Spring Boot app container)
   FargateService:
     Type: AWS::ECS::Service
     Properties: 

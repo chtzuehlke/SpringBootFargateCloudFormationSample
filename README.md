@@ -214,7 +214,142 @@ Create the CloudFormation stack via AWS cli:
 
 ## Application
 
-...
+Requirements:
+- Run dockerized Spring Boot web application
+- No hard-coded environment specific configuratiomn (DB host & port)
+- No passwords in configuration files or environment variables (DB password)
+- Centralized logging
+- Easy redeployment
+
+The following services (in concert) meet these requirements:
+- Run docker containers via AWS Fargate (as a service with one task with one container)
+- Force redeployment (via API/AWS cli) after docker push to roll out a new version
+- Logging to CloudWatch (Fargate configuration)
+- Configuration via environment variables (DB host & port)
+- DB password is stored in AWS Systems Manager Parameter Store as secure string
+
+CloudFormation yaml template (some details omitted):
+
+    ...
+    Resources:
+        # Required for CloudWatch logging, amongst others
+        ECSExecutionRole:
+            Type: AWS::IAM::Role
+            Properties:
+                AssumeRolePolicyDocument:
+                    Version: "2012-10-17"
+                    Statement:
+                        - Effect: "Allow"
+                          Principal:
+                            Service:
+                                - "ecs-tasks.amazonaws.com"
+                          Action:
+                            - "sts:AssumeRole"
+                ManagedPolicyArns:
+                    - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+                MaxSessionDuration: 3600
+                Path: /service-role/
+
+        # Required to read secure strings in AWS Systems Manager Parameter Store
+        TaskRole:
+            Type: AWS::IAM::Role
+            Properties:
+                AssumeRolePolicyDocument:
+                    Version: "2012-10-17"
+                    Statement:
+                        - Effect: "Allow"
+                          Principal:
+                            Service:
+                                - "ecs-tasks.amazonaws.com"
+                          Action:
+                            - "sts:AssumeRole"
+                Policies:
+                    - PolicyName: !Sub 'TaskRole-${AWS::StackName}'
+                      PolicyDocument:
+                            Version: 2012-10-17
+                            Statement:
+                                - Effect: Allow
+                            Action:
+                                - 'ssm:GetParameter'
+                            Resource:
+                                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${DBPassSSMName}"
+                MaxSessionDuration: 3600
+                Path: /service-role/
+
+        # Required to read from AWS Systems Manager Parameter Store
+        TaskLogGroup:
+            Type: AWS::Logs::LogGroup
+            Properties: 
+                LogGroupName: !Join [ '', [ '/ecs/', !Ref 'AWS::StackName' ] ]
+                RetentionInDays: 7
+
+        # Spring Boot app task definition (ref to :latest image simple deployment in dev) and env-specific configuration
+        TaskDefinition:
+            Type: AWS::ECS::TaskDefinition
+            Properties: 
+                ExecutionRoleArn: !GetAtt ECSExecutionRole.Arn
+                TaskRoleArn: !GetAtt TaskRole.Arn
+                Cpu: "1024"
+                Memory: "2048"
+                Family: !Ref 'AWS::StackName'
+                NetworkMode: "awsvpc"
+                RequiresCompatibilities:
+                    - "FARGATE"
+                ContainerDefinitions:
+                    - Cpu: "256"
+                      Essential: true
+                      Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${DockerRepo}:latest"
+                      LogConfiguration:
+                        LogDriver: "awslogs"
+                        Options:
+                            "awslogs-group": !Ref TaskLogGroup
+                            "awslogs-region": !Ref 'AWS::Region'
+                            "awslogs-stream-prefix": "ecs"
+                      Memory: "512"
+                      MemoryReservation: "512"
+                      Name: !Ref 'AWS::StackName'
+                      PortMappings:
+                        - ContainerPort: 8080
+                          Protocol: "tcp"
+                      Environment:
+                        - Name: DBPort
+                          Value: !Ref DBPort 
+                        - Name: DBAddress
+                          Value: !Ref DBAddress 
+                        - Name: DBPassSSMName
+                          Value: !Ref DBPassSSMName
+
+        FargateCluster:
+            Type: AWS::ECS::Cluster
+
+        # Running service (with one task with one Spring Boot app container)
+        FargateService:
+            Type: AWS::ECS::Service
+            Properties: 
+                Cluster: !Ref FargateCluster
+                DeploymentConfiguration:
+                    MaximumPercent: 200
+                    MinimumHealthyPercent: 100
+                DesiredCount: 1
+                LaunchType: "FARGATE"
+                NetworkConfiguration: 
+                    AwsvpcConfiguration: 
+                    AssignPublicIp: "ENABLED"
+                    SecurityGroups: 
+                        - !Ref SecurityGroup
+                    Subnets: !Ref Subnets
+                PlatformVersion: "LATEST"
+                SchedulingStrategy: "REPLICA"
+                TaskDefinition: !Ref TaskDefinition
+                LoadBalancers:
+                    - ContainerName: !Ref 'AWS::StackName'
+                      ContainerPort: 8080
+                      TargetGroupArn: !Ref TargetGroup
+        ...
+
+Create the CloudFormation stack via AWS cli:
+
+
 
 # Spring Boot and AWS Fargate (in 13' from 0 to cloud)
 
