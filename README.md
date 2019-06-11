@@ -11,7 +11,7 @@ Target Architecture:
 
 ![Security Groups](drawio/securitygroups.png)
  
-Requirements
+Requirements:
 - End user web browsers can only communicate with the load balancer (HTTPS, port 443)
 - Only the load balancer can communicate with the web application (HTTP, port 8080)
 - Only the web application can communicate with the database (MySQL, port 3306)
@@ -60,8 +60,10 @@ Create the CloudFormation stack (via AWS cli):
 
     export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
     export SUBNET_IDS=subnet-4ebb1628,subnet-40d26008,subnet-572fc30d #your subnet ids
-    aws cloudformation create-stack --stack-name samplewebworkload-net-dev \
-        --template-body file://network-cf.yaml 
+
+    aws cloudformation create-stack \
+        --stack-name samplewebworkload-net-dev \
+        --template-body file://network-cf.yaml \
         --parameters ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
                      ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID
 
@@ -69,8 +71,8 @@ Create the CloudFormation stack (via AWS cli):
 
 ![Load Balancer](drawio/loadbalancer.png)
  
-Requirements
-- Load balancer must be reachable via a custom domain name
+Requirements:
+- Load balancer must be reachable via a custom domain name (e.g. www.<mydomain>.ch)
 - Load balancer must terminate HTTPS traffic
 - Load balancer must forward traffic to our application via HTTP
 
