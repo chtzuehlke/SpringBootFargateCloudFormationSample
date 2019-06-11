@@ -223,6 +223,7 @@ Create the CloudFormation stack via AWS cli:
 - AWS cli installed & configured (sufficient IAM permissions, default region)
 - Default VPC present in default AWS region
 - Docker running
+- Linux-like environment (bash, curl, sed, ...)
 - openssl installed
 - jq installed
 - ...
