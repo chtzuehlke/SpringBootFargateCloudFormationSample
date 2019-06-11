@@ -2,23 +2,23 @@
 
 ![High Level Overview](drawio/overview.png)
 
-Let's explore the "AWS Fargte"-way to operate a Java web application:
+Target Architecture:
 - Load balancer: Application Load Balancer (with TLS-termination)
-- Web application: Containerized Java (Spring Boot) application running as a AWS Fargate service
+- Web application: containerized Java (Spring Boot-) application running as a AWS Fargate service
 - Database: Amazon RDS for MySQL instance
 
-## "Firewall"
+## Network Security
 
 ![Security Groups](drawio/securitygroups.png)
  
 Requirements
-- End user's web browser can only communicate with the load balancer (HTTPS, port 443)
-- Only the load balancer can communicate to the web application (HTTP, port 8080)
-- Only the web application can communicate to the database (MySQL, port 3306)
+- End user web browsers can only communicate with the load balancer (HTTPS, port 443)
+- Only the load balancer can communicate with the web application (HTTP, port 8080)
+- Only the web application can communicate with the database (MySQL, port 3306)
 
-Let's setup VPC Security Groups to meet these requirements. 
+Properly configured VPC Security Groups meet these requirements.
 
-First, create a CloudFormation yaml template (some details omitted):
+CloudFormation yaml template (some details omitted):
 
     ...
     Resources:
@@ -206,7 +206,7 @@ Now, let's create a CloudFormation stack based on this template (via AWS command
 
 ...
 
-# Let's play with Spring Boot and AWS Fargate (in 13' from 0 to production)
+# Spring Boot and AWS Fargate (in 13' from 0 to cloud)
 
 Disclaimer: not production ready (e.g. automation scripts w/o error handling)
 
