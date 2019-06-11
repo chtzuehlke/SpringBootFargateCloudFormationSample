@@ -18,6 +18,8 @@ Parameters:
     Type: String
   DBAddress:
     Type: String
+  DBPassSSMName:
+    Type: String
 
 Resources:
   ECSExecutionRole:
@@ -58,7 +60,7 @@ Resources:
               Action:
               - 'ssm:GetParameter'
               Resource:
-              - 'arn:aws:ssm:eu-west-1:208464084183:parameter/dev.db.rand.pass'
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${DBPassSSMName}"
       MaxSessionDuration: 3600
       Path: /service-role/
 
@@ -102,6 +104,8 @@ Resources:
               Value: !Ref DBPort 
             - Name: DBAddress
               Value: !Ref DBAddress 
+            - Name: DBPassSSMName
+              Value: !Ref DBPassSSMName
 
   FargateCluster:
     Type: AWS::ECS::Cluster

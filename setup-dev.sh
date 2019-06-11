@@ -8,6 +8,9 @@ echo Create Security Groups Stack
 echo Wait for Security Groups Stack
 aws cloudformation wait stack-create-complete --stack-name samplewebworkload-net-dev
 
+echo Create Database Password in SSM
+./ssm-gen-random-dbpass.sh
+
 echo Create Database Stack
 ./cf-create-db-dev.sh
 

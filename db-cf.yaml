@@ -1,12 +1,13 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Parameters:
-  VPC:
-    Type: AWS::EC2::VPC::Id
   Subnets:
     Type: "List<AWS::EC2::Subnet::Id>"
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
+  MasterUserPassword:
+    Type: String
+    NoEcho: true
 
 Resources:
   DBSubnetGroup:
@@ -26,7 +27,7 @@ Resources:
       DBInstanceClass: db.t3.micro
       Engine: MySQL
       MasterUsername: masteruser
-      MasterUserPassword: "{{resolve:ssm-secure:dev.db.rand.pass:3}}"
+      MasterUserPassword: !Ref MasterUserPassword
     DeletionPolicy: Delete
 
 Outputs:

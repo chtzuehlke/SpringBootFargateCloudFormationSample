@@ -7,5 +7,5 @@ SUBNET_IDS=$(aws ec2 describe-subnets --query "Subnets[?VpcId==\`$DEFAULT_VPC_ID
 
 aws cloudformation create-stack --stack-name samplewebworkload-db-dev --template-body file://db-cf.yaml --parameters \
   ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
-  ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID \
-  ParameterKey=SecurityGroup,ParameterValue=$SG_ID
+  ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
+  ParameterKey=MasterUserPassword,ParameterValue=$(./ssm-get-dbpass.sh | jq -r ".Parameter.Value")

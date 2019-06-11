@@ -57,4 +57,3 @@ Steps
 ## FIXMEs
 
 - Remove hard-coded certificate arn
-- Remove hard-coded SSM resource

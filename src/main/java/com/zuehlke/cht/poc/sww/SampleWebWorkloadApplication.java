@@ -30,6 +30,9 @@ public class SampleWebWorkloadApplication {
 	@Value("${DBPort}")
 	private String dbPort;
 	
+	@Value("${DBPassSSMName}")
+	private String dbPassSSMName;
+	
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
@@ -37,7 +40,7 @@ public class SampleWebWorkloadApplication {
     public DataSource getDataSource() {
 		AWSSimpleSystemsManagement ssm = AWSSimpleSystemsManagementClientBuilder.defaultClient();
 		String pass = ssm.getParameter(new GetParameterRequest()
-					.withName("dev.db.rand.pass")
+					.withName(dbPassSSMName)
 					.withWithDecryption(true)
 				).getParameter().getValue();
 		

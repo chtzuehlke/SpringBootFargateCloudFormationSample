@@ -21,4 +21,5 @@ aws cloudformation create-stack --capabilities CAPABILITY_IAM --stack-name sampl
   ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
   ParameterKey=DBIdentifier,ParameterValue=$DB_ID \
   ParameterKey=DBPort,ParameterValue=$DB_ADDR \
-  ParameterKey=DBAddress,ParameterValue=$DB_PORT
+  ParameterKey=DBAddress,ParameterValue=$DB_PORT \
+  ParameterKey=DBPassSSMName,ParameterValue="dev.db.rand.pass"
