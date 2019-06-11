@@ -9,6 +9,7 @@
 		<version>2.1.5.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
+	
 	<groupId>com.zuehlke.cht.poc</groupId>
 	<artifactId>sample-web-workload</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -25,40 +26,27 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-		
-		<dependency>
-		    <groupId>org.springframework.boot</groupId>
-		    <artifactId>spring-boot-starter-jdbc</artifactId>
-		</dependency>
 
 		<dependency>
-		    <groupId>mysql</groupId>
-		    <artifactId>mysql-connector-java</artifactId>
-		    <!-- <version>8.0.16</version> -->
-		</dependency>
-		
-		<dependency>
-		    <groupId>org.flywaydb</groupId>
-		    <artifactId>flyway-core</artifactId>
-		</dependency>
-
-		<!-- <dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency> -->
-		
-		<dependency>
-		    <groupId>com.amazonaws</groupId>
-		    <artifactId>aws-java-sdk-ssm</artifactId>
-		    <version>1.11.568</version>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
-		
-		<!-- <dependency>
-		    <groupId>com.amazonaws</groupId>
-		    <artifactId>aws-java-sdk-cloudformation</artifactId>
-		    <version>1.11.568</version>
-		</dependency> -->
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-ssm</artifactId>
+			<version>1.11.568</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -67,7 +55,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			
+
 			<!-- see https://spring.io/guides/gs/spring-boot-docker/ -->
 			<plugin>
 				<groupId>com.spotify</groupId>
