@@ -98,8 +98,6 @@ Resources:
             - ContainerPort: 8080
               Protocol: "tcp"
           Environment:
-            - Name: DBIdentifier
-              Value: !Ref DBIdentifier 
             - Name: DBPort
               Value: !Ref DBPort 
             - Name: DBAddress

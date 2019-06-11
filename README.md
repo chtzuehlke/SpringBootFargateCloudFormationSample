@@ -13,7 +13,7 @@
 - openssl installed
 - jq installed
 
-## Setup Development Environment (approx. 75 USD/Month)
+## Setup Development Environment (setup duration: approx. 12 min, costs: approx. 75 USD/Month)
 
 Under the hoods
 
@@ -60,3 +60,7 @@ Under the hoods
 Steps
 
     ./teardown-dev.sh
+
+## Overview
+
+![Overview](drawio/alb-fargate-rds-ssm.png)

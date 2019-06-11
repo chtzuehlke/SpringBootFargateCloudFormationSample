@@ -21,9 +21,6 @@ import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
 @RestController
 @Configuration
 public class SampleWebWorkloadApplication {
-	@Value("${DBIdentifier}")
-	private String dbIdentifier;
-	
 	@Value("${DBAddress}")
 	private String dbAddress;
 	
