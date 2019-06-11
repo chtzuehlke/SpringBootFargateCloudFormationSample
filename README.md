@@ -24,7 +24,7 @@ Under the hoods
 - Create Security Groups (new CloudFormation stack via AWS cli)
 - Create new Elastic Load Balancer (new CloudFormation stack via AWS cli)
 - Create new DB password parameter (random password) in SSM Parameter Store (AWS cli)
-- Create new DS MySQL DB instance (new CloudFormation stack via AWS cli)
+- Create new RDS MySQL DB instance (new CloudFormation stack via AWS cli)
 - Create new Fargate Service with 1 running task with 1 container with DB access (new CloudFormation stack via AWS cli)
 
 Steps
