@@ -83,48 +83,48 @@ A properly configured Application Load Balancer meets the requirements:
 
 CloudFormation yaml template (some details omitted):
 
-  ...
-  Resources:
-    TargetGroup:
-        Type: AWS::ElasticLoadBalancingV2::TargetGroup
-        Properties:
-            HealthCheckIntervalSeconds: 30
-            HealthCheckPath: /
-            HealthCheckTimeoutSeconds: 5
-            UnhealthyThresholdCount: 4
-            HealthyThresholdCount: 2
-            Port: 8080
-            Protocol: HTTP
-            TargetGroupAttributes:
-                - Key: deregistration_delay.timeout_seconds
-                  Value: 60 
-            TargetType: ip
-            VpcId: !Ref VPC
-
-    TLSListener:
-        Type: AWS::ElasticLoadBalancingV2::Listener
-        Condition: EnableTLS
-        Properties:
-            Certificates: 
-                - CertificateArn: !Ref CertificateArn
-            DefaultActions:
-                - TargetGroupArn: !Ref TargetGroup
-                Type: forward
-            LoadBalancerArn: !Ref LoadBalancer
-            Port: 443
-            Protocol: HTTPS
-
-    LoadBalancer:
-        Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-        Properties:
-            LoadBalancerAttributes:
-                - Key: idle_timeout.timeout_seconds
-                  Value: 60
-            Scheme: internet-facing
-            SecurityGroups:
-                - !Ref SecurityGroup
-            Subnets: !Ref Subnets
     ...
+    Resources:
+        TargetGroup:
+            Type: AWS::ElasticLoadBalancingV2::TargetGroup
+            Properties:
+                HealthCheckIntervalSeconds: 30
+                HealthCheckPath: /
+                HealthCheckTimeoutSeconds: 5
+                UnhealthyThresholdCount: 4
+                HealthyThresholdCount: 2
+                Port: 8080
+                Protocol: HTTP
+                TargetGroupAttributes:
+                    - Key: deregistration_delay.timeout_seconds
+                    Value: 60 
+                TargetType: ip
+                VpcId: !Ref VPC
+
+        TLSListener:
+            Type: AWS::ElasticLoadBalancingV2::Listener
+            Condition: EnableTLS
+            Properties:
+                Certificates: 
+                    - CertificateArn: !Ref CertificateArn
+                DefaultActions:
+                    - TargetGroupArn: !Ref TargetGroup
+                    Type: forward
+                LoadBalancerArn: !Ref LoadBalancer
+                Port: 443
+                Protocol: HTTPS
+
+        LoadBalancer:
+            Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+            Properties:
+                LoadBalancerAttributes:
+                    - Key: idle_timeout.timeout_seconds
+                    Value: 60
+                Scheme: internet-facing
+                SecurityGroups:
+                    - !Ref SecurityGroup
+                Subnets: !Ref Subnets
+        ...
 
 Create the CloudFormation stack via AWS cli:
 
