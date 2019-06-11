@@ -188,23 +188,23 @@ Create the CloudFormation stack via AWS cli:
                      ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
                      ParameterKey=MasterUserPassword,ParameterValue=$DB_KEY
 
-## Application Deployment
+## Privte Docker Registry
 
-![Private Docker Registry](drawio/loadbalancer.png)
+![Private Docker Registry](drawio/deployment.png)
  
-Requirements: Deploy new app by pushing a new image to a private docker registry
+Requirements: a private docker registry
 
-An Elastic Container Registry meets (almost) all requirements.
+An Elastic Container Registry meets the requirements.
 
 CloudFormation yaml template (some details omitted):
 
     ...
     Resources:
-    DockerRepo:
-        Type: AWS::ECR::Repository
-        Properties: 
-            RepositoryName: !Ref 'AWS::StackName'
-    ...
+        DockerRepo:
+            Type: AWS::ECR::Repository
+            Properties: 
+                RepositoryName: !Ref 'AWS::StackName'
+        ...
 
 Create the CloudFormation stack via AWS cli:
 
