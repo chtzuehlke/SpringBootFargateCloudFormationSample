@@ -18,7 +18,7 @@ Requirements:
 
 Properly configured VPC Security Groups meet these requirements.
 
-Define the CloudFormation yaml template (some details omitted):
+CloudFormation yaml template (some details omitted):
 
     ...
     Resources:
@@ -56,7 +56,7 @@ Define the CloudFormation yaml template (some details omitted):
             VpcId: !Ref VPC
         ...
 
-Create the CloudFormation stack (via AWS cli):
+Create the CloudFormation stack via AWS cli:
 
     export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
     export SUBNET_IDS=subnet-4ebb1628,subnet-40d26008,subnet-572fc30d #your subnet ids
@@ -72,16 +72,16 @@ Create the CloudFormation stack (via AWS cli):
 ![Load Balancer](drawio/loadbalancer.png)
  
 Requirements:
-- Load balancer must be reachable via a custom domain name (e.g. www.<mydomain>.ch)
+- Load balancer must be reachable via a custom domain name (e.g. https://www.mydomain.com)
 - Load balancer must terminate HTTPS traffic
 - Load balancer must forward traffic to our application via HTTP
 
-Let's setup an Application Load Balancer to meet these requirements:
-- TLSListeer: Setup to terminate HTTPS traffic (will be associated with a - manually created - AWS Certificate Manager TLS certificate)
-- TargetGroup: Setup to forward all traffic to or application
-- Also create a Route53 CNAME record which points to the CNAME of the Application Load Balancer (manual)
+A properly configured Application Load Balancer meets the requirements:
+- TLSListeer: Terminates HTTPS traffic and is associated with a (manually created) AWS Certificate Manager TLS certificate (e.g. for www.mydomain.com)
+- TargetGroup: Forwards all traffic to the application via HTTP
+- A (manually created) Route53 CNAME record can refer the CNAME of the Application Load Balancer
 
-First, create a CloudFormation yaml template (some details omitted):
+CloudFormation yaml template (some details omitted):
 
   ...
   Resources:
@@ -126,17 +126,20 @@ First, create a CloudFormation yaml template (some details omitted):
             Subnets: !Ref Subnets
     ...
 
-Now, let's create a CloudFormation stack based on this template (via AWS command line interface):
+Create the CloudFormation stack via AWS cli:
 
     export SG_ID="sg-..." #your security group id
     export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
     export SUBNET_IDS=subnet-4ebb1628,subnet-40d26008,subnet-572fc30d #your subnet ids
     export SSL_CERT_ARN="arn:aws:acm:eu-west-1:208464084183:certificate/73d7cb1d-3137-4182-86c5-c01a7578e595" #your ACM cert ARN
-    aws cloudformation create-stack --stack-name samplewebworkload-lb-dev --template-body file://lb-cf.yaml --parameters \
-        ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
-        ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID \
-        ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
-        ParameterKey=CertificateArn,ParameterValue="$SSL_CERT_ARN"
+
+    aws cloudformation create-stack \
+        --stack-name samplewebworkload-lb-dev \
+        --template-body file://lb-cf.yaml \
+        --parameters ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
+                     ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID \
+                     ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
+                     ParameterKey=CertificateArn,ParameterValue="$SSL_CERT_ARN"
 
 ## Database
 
