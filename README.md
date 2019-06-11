@@ -25,11 +25,14 @@ Disclaimer:
 - Not production ready yet (e.g. automation scripts w/o error handling)
 - Costs (until teardown): approx. 75 USD/month
 
+Steps:
 
     ./setup-dev.sh
     ./curl-loop-dev.sh
 
 ### Deploy new application version
+
+Steps:
 
     ./update-dev.sh
 
@@ -38,6 +41,8 @@ Disclaimer:
 Disclaimer:
 - Not production ready yet (e.g. automation scripts w/o error handling)
 - All data lost!
+
+ Steps:
 
     ./teardown-dev.sh
 
