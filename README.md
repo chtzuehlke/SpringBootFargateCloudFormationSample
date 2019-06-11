@@ -257,7 +257,7 @@ Create the CloudFormation stack via AWS cli:
 
 Requirements:
 - Run dockerized Spring Boot web application
-- No hard-coded environment specific configuratiomn (DB host & port)
+- No hard-coded environment-specific configuration (DB host & port)
 - No passwords in configuration files or environment variables (DB password)
 - Centralized logging
 - Easy redeployment
@@ -410,6 +410,13 @@ Create the CloudFormation stack via AWS cli:
                      ParameterKey=DBPort,ParameterValue=$DB_ADDR \
                      ParameterKey=DBAddress,ParameterValue=$DB_PORT \
                      ParameterKey=DBPassSSMName,ParameterValue="dev.db.rand.pass"
+
+Force redeployment after docker push:
+
+    CLUSTER="..." #your fargate cluster name
+    SERVICE="..." #your fargate service name
+
+    aws ecs update-service --cluster $CLUSTER --service $SERVICE --force-new-deployment
 
 ## AWS Infrastructure
 
