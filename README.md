@@ -128,7 +128,7 @@ CloudFormation yaml template (some details omitted):
 
 Create the CloudFormation stack via AWS cli:
 
-    export SG_ID="sg-34..." #your security group id
+    export SG_ID="sg-12..." #your security group id
     export DEFAULT_VPC_ID="vpc-c2..." #your vpc id 
     export SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
     export SSL_CERT_ARN="arn:aws:acm:eu-west-1:20...:certificate/73..." #your ACM cert ARN
@@ -145,12 +145,11 @@ Create the CloudFormation stack via AWS cli:
 
 ![Load Balancer](drawio/database.png)
  
-Requirements
-- Managed MySQL database without undifferientiated heavy lifting (e.g. OS & RDBMS security patching)
+Requirements: Managed MySQL database
 
-Let's setup an Amazon RDS for MySQL database instance meet these requirements.
+An Amazon RDS for MySQL database instance meets the requirements.
 
-First, create a CloudFormation yaml template (some details omitted):
+CloudFormation yaml template (some details omitted):
 
   ...
   Resources:
@@ -175,26 +174,29 @@ First, create a CloudFormation yaml template (some details omitted):
             DeletionPolicy: Delete
     ...
 
-Now, let's create a CloudFormation stack based on this template (via AWS command line interface):
+Create the CloudFormation stack via AWS cli:
 
-    export SG_ID="sg-..." #your security group id
+    export SG_ID="sg-34..." #your security group id
     export DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
-    export SUBNET_IDS=subnet-4ebb1628,subnet-40d26008,subnet-572fc30d #your subnet ids
-    aws cloudformation create-stack --stack-name samplewebworkload-db-dev --template-body file://db-cf.yaml --parameters \
-        ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
-        ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
-        ParameterKey=MasterUserPassword,ParameterValue=$(./ssm-get-dbpass.sh | jq -r ".Parameter.Value")
+    export SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
+    export DB_KEY="..." #your secret key
+
+    aws cloudformation create-stack \
+        --stack-name samplewebworkload-db-dev \
+        --template-body file://db-cf.yaml \
+        --parameters ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
+                     ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
+                     ParameterKey=MasterUserPassword,ParameterValue=$DB_KEY
 
 ## Application Deployment
 
 ![Private Docker Registry](drawio/loadbalancer.png)
  
-Requirements
-- Deploy new app by pushing a new image to a private docker registry
+Requirements: Deploy new app by pushing a new image to a private docker registry
 
-Let's create a Elastic Container Registry to meet (almost) all requirements.
+An Elastic Container Registry meets (almost) all requirements.
 
-First, create a CloudFormation yaml template (some details omitted):
+CloudFormation yaml template (some details omitted):
 
     ...
     Resources:
@@ -204,9 +206,11 @@ First, create a CloudFormation yaml template (some details omitted):
             RepositoryName: !Ref 'AWS::StackName'
     ...
 
-Now, let's create a CloudFormation stack based on this template (via AWS command line interface):
+Create the CloudFormation stack via AWS cli:
 
-    aws cloudformation create-stack --stack-name samplewebworkload-repo-dev --template-body file://repo-cf.yaml
+    aws cloudformation create-stack \
+        --stack-name samplewebworkload-repo-dev \
+        --template-body file://repo-cf.yaml
 
 ## Application
 
@@ -214,65 +218,45 @@ Now, let's create a CloudFormation stack based on this template (via AWS command
 
 # Spring Boot and AWS Fargate (in 13' from 0 to cloud)
 
-Disclaimer: not production ready (e.g. automation scripts w/o error handling)
-
 ## Pre-Conditions
 
 - AWS cli installed & configured (sufficient IAM permissions, default region)
 - Default VPC present in default AWS region
 - Docker running
-- Linux-like environment (bash, curl, sed, ...) - tested with macOS
 - openssl installed
 - jq installed
+- ...
 
-## Setup Development Environment (setup duration: approx. 12 min, costs: approx. 75 USD/Month)
+## Setup development environment (ECR + ALB + Fargate Service + RDS)
 
-Under the hoods
+Disclaimer:
+- Not production ready yet (e.g. automation scripts w/o error handling)
+- Setup duration: approx. 13'
+- Costs (until teardown): approx. 75 USD/month
 
-- Create new Elastic Container Registry (new CloudFormation stack via AWS cli)
-- Create docker image (maven & docker)
-- Upload docker image (AWS cli & docker)
-- Create Security Groups (new CloudFormation stack via AWS cli)
-- Create new Elastic Load Balancer (new CloudFormation stack via AWS cli)
-- Create new DB password parameter (random password) in SSM Parameter Store (AWS cli)
-- Create new RDS MySQL DB instance (new CloudFormation stack via AWS cli)
-- Create new Fargate Service with 1 running task with 1 container with DB access (new CloudFormation stack via AWS cli)
-
-Steps
+Steps:
 
     ./setup-dev.sh
 
-Verify
+Verify:
 
     ./curl-loop-dev.sh
 
-## Application Deployment
+## Deploy new application version
 
-Under the hoods
-
-- Create new docker image (maven & docker)
-- Upload new docker image (AWS cli & docker)
-- Force new fargate task deployment (AWS cli)
-
-Steps
+Steps:
 
     ./update-dev.sh
 
-## Teardown Development Environment
+## Teardown development environment
 
-Under the hoods
+Disclaimer:
+- Not production ready yet (e.g. automation scripts w/o error handling)
 
-- Remove docker images from docker regisry (AWS cli)
-- Delete private docker registry (delete CloudFormation stack via AWS cli)
-- Delete elastic load balancer (delete CloudFormation stack via AWS cli)
-- Delete fargate service (delete CloudFormation stack via AWS cli)
-- Delete RDS instance w/o backup (delete CloudFormation stack via AWS cli)
-- ...
-
-Steps
+Steps:
 
     ./teardown-dev.sh
 
-## Overview
+# AWS Infrastructure Details
 
 ![Infrastructure Details](drawio/alb-fargate-rds-ssm.png)
