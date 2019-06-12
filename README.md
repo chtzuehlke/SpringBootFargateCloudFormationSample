@@ -49,6 +49,8 @@ Disclaimer:
 
 ## Behind the scenes (CloudFormation and AWS cli)
 
+![CloudFormation Stacks](drawio/stacks.png)
+
 The AWS resources will be created using multiple CloudFormation templates which rely on each other (via exported outputs and Fn::ImportValue).
 
 ### Network Security
@@ -422,6 +424,6 @@ Force redeployment after docker push:
 
     aws ecs update-service --cluster $CLUSTER --service $SERVICE --force-new-deployment
 
-## AWS Infrastructure
+## AWS Infrastructure Overview
 
 ![Infrastructure Details](drawio/alb-fargate-rds-ssm.png)
