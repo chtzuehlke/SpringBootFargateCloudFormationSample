@@ -6,6 +6,7 @@ Target Architecture:
 - Load balancer: Application Load Balancer (with TLS-termination)
 - Web application: containerized Java (Spring Boot-) application running as a AWS Fargate service
 - Database: Amazon RDS for MySQL instance
+- As old and new versions will have DB access at the same time during deployment, DB changes must be backwards-compatible and applications must be forwards- and backwards-compatible (e.g. add columns, not delete or rename columns)
 
 ## All automated - from zero to cloud in 13'
 
