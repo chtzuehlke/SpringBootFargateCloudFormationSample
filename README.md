@@ -220,7 +220,7 @@ Create the CloudFormation stack (and a random password in SSM parameter store) v
     aws cloudformation create-stack \
         --stack-name samplewebworkload-db-dev \
         --template-body file://db-cf.yaml \
-        --parameters ParameterKey=MasterUserPassword,ParameterValue=$PASS
+        --parameters ParameterKey=MasterUserPassword,ParameterValue=$PASS \
                      ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev
 
 ### Privte Docker Registry
