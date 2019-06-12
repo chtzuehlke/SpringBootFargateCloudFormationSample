@@ -25,14 +25,14 @@ Disclaimer:
 
 Steps:
 
-    ./setup-dev.sh
-    ./curl-loop-dev.sh
+    ./setup.sh testenv
+    ./curl-loop.sh testenv
 
 ### Deploy new application version (mvn build, docker push, Fargate deploy)
 
 Steps:
 
-    ./update-dev.sh
+    ./update.sh testenv
 
 ### Automated dev env teardown (delete all stacks/resources)
 
@@ -42,7 +42,7 @@ Disclaimer:
 
 Steps:
 
-    ./teardown-dev.sh
+    ./teardown.sh testenv
 
 ## Behind the scenes (CloudFormation and AWS CLI)
 
@@ -108,7 +108,7 @@ Create the CloudFormation stack via AWS CLI:
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-net-dev \
-        --template-body file://network-cf.yaml \
+        --template-body file://cloudformation/securitygroups.yaml \
         --parameters ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
                      ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID
 
@@ -175,7 +175,7 @@ Create the CloudFormation stack via AWS CLI:
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-lb-dev \
-        --template-body file://lb-cf.yaml \
+        --template-body file://cloudformation/applicationloadbalancer.yaml \
         --parameters ParameterKey=CertificateArn,ParameterValue="$SSL_CERT_ARN" \
                      ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev
 
@@ -220,7 +220,7 @@ Create the CloudFormation stack via AWS CLI:
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-db-dev \
-        --template-body file://db-cf.yaml \
+        --template-body file://cloudformation/database.yaml \
         --parameters ParameterKey=MasterUserPassword,ParameterValue=$PASS \
                      ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev
 
@@ -244,7 +244,7 @@ Create the CloudFormation stack via AWS CLI:
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-repo-dev \
-        --template-body file://repo-cf.yaml
+        --template-body file://cloudformation/ecr.yaml
 
 Now, let's build and push the docker image:
 
@@ -404,7 +404,7 @@ Create the CloudFormation stack via AWS CLI:
     aws cloudformation create-stack \
         --capabilities CAPABILITY_IAM \
         --stack-name samplewebworkload-fargatew-dev \
-        --template-body file://fargate-cf.yaml \
+        --template-body file://cloudformation/fargate.yaml \
         --parameters ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev \
                      ParameterKey=LoadBalancerStack,ParameterValue=samplewebworkload-lb-dev \
                      ParameterKey=DatabaseStack,ParameterValue=samplewebworkload-db-dev \
