@@ -4,32 +4,19 @@ Parameters:
   CertificateArn:
     Type: String
     Default: NONE
+
   NetworkStack:
     Type: String
 
-Conditions: 
-  EnableTLS: !Not [ !Equals [ !Ref CertificateArn, "NONE" ]]
+Conditions:
+  EnableTLS: !Not
+    - "Fn::Equals":
+        - Ref: CertificateArn
+        - NONE
 
 Resources:
-  TargetGroup:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      HealthCheckIntervalSeconds: 30
-      HealthCheckPath: /
-      HealthCheckTimeoutSeconds: 5
-      UnhealthyThresholdCount: 4
-      HealthyThresholdCount: 2
-      Port: 8080
-      Protocol: HTTP
-      TargetGroupAttributes:
-        - Key: deregistration_delay.timeout_seconds
-          Value: 60 
-      TargetType: ip
-      VpcId: 
-        "Fn::ImportValue": !Sub "${NetworkStack}-VPC"
-
   Listener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
     Properties:
       DefaultActions:
         - TargetGroupArn: !Ref TargetGroup
@@ -38,11 +25,24 @@ Resources:
       Port: 80
       Protocol: HTTP
 
+  LoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: 60
+      Scheme: internet-facing
+      SecurityGroups:
+        - "Fn::ImportValue": !Sub ${NetworkStack}-LoadBalancerSG
+      Subnets: !Split
+        - ","
+        - "Fn::ImportValue": !Sub ${NetworkStack}-Subnets
+
   TLSListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
     Condition: EnableTLS
     Properties:
-      Certificates: 
+      Certificates:
         - CertificateArn: !Ref CertificateArn
       DefaultActions:
         - TargetGroupArn: !Ref TargetGroup
@@ -51,23 +51,30 @@ Resources:
       Port: 443
       Protocol: HTTPS
 
-  LoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  TargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
-      LoadBalancerAttributes:
-        - Key: idle_timeout.timeout_seconds
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Port: 8080
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
           Value: 60
-      Scheme: internet-facing
-      SecurityGroups:
-        - "Fn::ImportValue": !Sub "${NetworkStack}-LoadBalancerSG"
-      Subnets: !Split [ ",", "Fn::ImportValue": !Sub "${NetworkStack}-Subnets" ]
+      TargetType: ip
+      UnhealthyThresholdCount: 4
+      VpcId: !ImportValue
+        "Fn::Sub": ${NetworkStack}-VPC
 
 Outputs:
-  TargetGroup:
-    Value: !Ref TargetGroup
-    Export:
-      Name: !Sub "${AWS::StackName}-TargetGroup"
   LoadBalancer:
     Value: !GetAtt LoadBalancer.DNSName
     Export:
       Name: !Sub "${AWS::StackName}-LoadBalancer"
+
+  TargetGroup:
+    Value: !Ref TargetGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-TargetGroup"

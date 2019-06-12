@@ -4,36 +4,40 @@ Parameters:
   MasterUserPassword:
     Type: String
     NoEcho: true
+
   NetworkStack:
     Type: String
 
 Resources:
+  DB:
+    Type: "AWS::RDS::DBInstance"
+    DeletionPolicy: Delete
+    Properties:
+      AllocatedStorage: "5"
+      DBInstanceClass: db.t3.micro
+      DBName: db
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      Engine: MySQL
+      MasterUserPassword: !Ref MasterUserPassword
+      MasterUsername: masteruser
+      VPCSecurityGroups:
+        - "Fn::ImportValue": !Sub ${NetworkStack}-DatabaseSG
+
   DBSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
-    Properties: 
-      DBSubnetGroupDescription: db subnet group
-      SubnetIds: !Split [ ",", "Fn::ImportValue": !Sub "${NetworkStack}-Subnets" ]
-
-  DB:
-    Type: AWS::RDS::DBInstance
     Properties:
-      DBSubnetGroupName: !Ref DBSubnetGroup
-      DBName: db
-      VPCSecurityGroups:
-        - "Fn::ImportValue": !Sub "${NetworkStack}-DatabaseSG"
-      AllocatedStorage: '5'
-      DBInstanceClass: db.t3.micro
-      Engine: MySQL
-      MasterUsername: masteruser
-      MasterUserPassword: !Ref MasterUserPassword
-    DeletionPolicy: Delete
+      DBSubnetGroupDescription: db subnet group
+      SubnetIds: !Split
+        - ","
+        - "Fn::ImportValue": !Sub ${NetworkStack}-Subnets
 
 Outputs:
-  DBPort:
-    Value: !GetAtt DB.Endpoint.Port
-    Export:
-      Name: !Sub "${AWS::StackName}-DBPort"
   DBAddress:
     Value: !GetAtt DB.Endpoint.Address
     Export:
       Name: !Sub "${AWS::StackName}-DBAddress"
+
+  DBPort:
+    Value: !GetAtt DB.Endpoint.Port
+    Export:
+      Name: !Sub "${AWS::StackName}-DBPort"

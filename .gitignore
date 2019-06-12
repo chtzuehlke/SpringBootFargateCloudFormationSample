@@ -29,3 +29,4 @@ HELP.md
 .vscode/
 .mvn
 setup-dev-duration.txt
+cfn-format-osx-amd64

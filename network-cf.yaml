@@ -1,67 +1,74 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Parameters:
-  VPC:
-    Type: AWS::EC2::VPC::Id
   Subnets:
     Type: "List<AWS::EC2::Subnet::Id>"
 
-Resources:
-  LoadBalancerSG:
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: HTTP and HTTPS
-      SecurityGroupIngress: 
-        -  IpProtocol: "tcp"
-           FromPort: 443
-           ToPort: 443
-           CidrIp: "0.0.0.0/0"
-        -  IpProtocol: "tcp"
-           FromPort: 80
-           ToPort: 80
-           CidrIp: "0.0.0.0/0"           
-      VpcId: !Ref VPC
+  VPC:
+    Type: "AWS::EC2::VPC::Id"
 
+Resources:
   ApplicationSG:
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
       GroupDescription: HTTP 8080
-      SecurityGroupIngress: 
-        -  IpProtocol: "tcp"
-           FromPort: 8080
-           ToPort: 8080
-           SourceSecurityGroupId: !GetAtt LoadBalancerSG.GroupId
+      SecurityGroupIngress:
+        - FromPort: 8080
+          IpProtocol: tcp
+          SourceSecurityGroupId: !GetAtt LoadBalancerSG.GroupId
+          ToPort: 8080
       VpcId: !Ref VPC
 
   DatabaseSG:
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
       GroupDescription: MySQL
-      SecurityGroupIngress: 
-        -  IpProtocol: "tcp"
-           FromPort: 3306
-           ToPort: 3306
-           SourceSecurityGroupId: !GetAtt ApplicationSG.GroupId           
+      SecurityGroupIngress:
+        - FromPort: 3306
+          IpProtocol: tcp
+          SourceSecurityGroupId: !GetAtt ApplicationSG.GroupId
+          ToPort: 3306
+      VpcId: !Ref VPC
+
+  LoadBalancerSG:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: HTTP and HTTPS
+      SecurityGroupIngress:
+        - CidrIp: "0.0.0.0/0"
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+        - CidrIp: "0.0.0.0/0"
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
       VpcId: !Ref VPC
 
 Outputs:
-  VPC:
-    Value: !Ref VPC
-    Export:
-      Name: !Sub "${AWS::StackName}-VPC"
-  Subnets:
-    Value: !Join [ ",", !Ref Subnets ]
-    Export:
-      Name: !Sub "${AWS::StackName}-Subnets"      
-  LoadBalancerSG:
-    Value: !Ref LoadBalancerSG
-    Export:
-      Name: !Sub "${AWS::StackName}-LoadBalancerSG"
   ApplicationSG:
     Value: !Ref ApplicationSG
     Export:
       Name: !Sub "${AWS::StackName}-ApplicationSG"
+
   DatabaseSG:
     Value: !Ref DatabaseSG
     Export:
       Name: !Sub "${AWS::StackName}-DatabaseSG"
+
+  LoadBalancerSG:
+    Value: !Ref LoadBalancerSG
+    Export:
+      Name: !Sub "${AWS::StackName}-LoadBalancerSG"
+
+  Subnets:
+    Value: !Join
+      - ","
+      - Ref: Subnets
+    Export:
+      Name: !Sub "${AWS::StackName}-Subnets"
+
+  VPC:
+    Value: !Ref VPC
+    Export:
+      Name: !Sub "${AWS::StackName}-VPC"

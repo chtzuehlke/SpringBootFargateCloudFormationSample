@@ -49,6 +49,8 @@ Disclaimer:
 
 ## Behind the scenes (CloudFormation and AWS cli)
 
+The AWS resources will be created using multiple CloudFormation templates which rely on each other (via exported outputs and Fn::ImportValue).
+
 ### Network Security
 
 ![Security Groups](drawio/securitygroups.png)
@@ -252,10 +254,7 @@ Build and push docker image:
     ./mvnw clean install dockerfile:build
 
     LOCAL_TAG=chtzuehlke/sample-web-workload:latest
-    
-    STACK="samplewebworkload-repo-dev"
-    OUTPUT="DockerRepoUrl"
-    REMOTE_TAG=$(aws cloudformation describe-stacks --stack-name $STACK --query "Stacks[0].Outputs[?OutputKey=='$OUTPUT'].OutputValue" --output text)
+    REMOTE_TAG=$(aws cloudformation list-exports --query "Exports[?Name=='samplewebworkload-repo-dev-DockerRepoUrl'].[Value]" --output text)
     
     docker tag $LOCAL_TAG $REMOTE_TAG
 
@@ -418,12 +417,8 @@ Create the CloudFormation stack via AWS cli:
 
 Force redeployment after docker push:
 
-    STACK="samplewebworkload-fargatew-dev"
-    OUTPUT="FargateCluster"
-    CLUSTER=$(aws cloudformation describe-stacks --stack-name $STACK --query "Stacks[0].Outputs[?OutputKey=='$OUTPUT'].OutputValue" --output text)
-
-    OUTPUT="FargateService"
-    SERVICE=$(aws cloudformation describe-stacks --stack-name $STACK --query "Stacks[0].Outputs[?OutputKey=='$OUTPUT'].OutputValue" --output text)
+    CLUSTER=$(aws cloudformation list-exports --query "Exports[?Name=='samplewebworkload-fargatew-dev-FargateCluster'].[Value]" --output text)
+    SERVICE=$(aws cloudformation list-exports --query "Exports[?Name=='samplewebworkload-fargatew-dev-FargateService'].[Value]" --output text)
 
     aws ecs update-service --cluster $CLUSTER --service $SERVICE --force-new-deployment
 

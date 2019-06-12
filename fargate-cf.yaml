@@ -1,30 +1,34 @@
 AWSTemplateFormatVersion: "2010-09-09"
+
 Description: A repo for a sample Spring Boot-based web workload container image
 
 Parameters:
   DBPassSSMName:
     Type: String
-  NetworkStack:
-    Type: String
-  LoadBalancerStack:
-    Type: String
+
   DatabaseStack:
     Type: String
+
   DockerRepoStack:
-    Type: String            
+    Type: String
+
+  LoadBalancerStack:
+    Type: String
+
+  NetworkStack:
+    Type: String
 
 Resources:
-  # Required for CloudWatch logging, amongst others
   ECSExecutionRole:
-    Type: AWS::IAM::Role
+    Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Effect: "Allow"
+          - Effect: Allow
             Principal:
               Service:
-                - "ecs-tasks.amazonaws.com"
+                - ecs-tasks.amazonaws.com
             Action:
               - "sts:AssumeRole"
       ManagedPolicyArns:
@@ -32,110 +36,116 @@ Resources:
       MaxSessionDuration: 3600
       Path: /service-role/
 
-  # Required to read secure strings in AWS Systems Manager Parameter Store
-  TaskRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service:
-                - "ecs-tasks.amazonaws.com"
-            Action:
-              - "sts:AssumeRole"
-      Policies:
-        - PolicyName: !Sub 'TaskRole-${AWS::StackName}'
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-            - Effect: Allow
-              Action:
-              - 'ssm:GetParameter'
-              Resource:
-              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${DBPassSSMName}"
-      MaxSessionDuration: 3600
-      Path: /service-role/
-
-  # Required to read from AWS Systems Manager Parameter Store
-  TaskLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties: 
-      LogGroupName: !Join [ '', [ '/ecs/', !Ref 'AWS::StackName' ] ]
-      RetentionInDays: 7
-
-  # Spring Boot app task definition (ref to :latest image simple deployment in dev) and env-specific configuration
-  TaskDefinition:
-    Type: AWS::ECS::TaskDefinition
-    Properties: 
-      ExecutionRoleArn: !GetAtt ECSExecutionRole.Arn
-      TaskRoleArn: !GetAtt TaskRole.Arn
-      Cpu: "1024"
-      Memory: "2048"
-      Family: !Ref 'AWS::StackName'
-      NetworkMode: "awsvpc"
-      RequiresCompatibilities:
-        - "FARGATE"
-      ContainerDefinitions:
-        - Cpu: "256"
-          Essential: true
-          Image: !Join [ "", [ !Ref "AWS::AccountId", ".dkr.ecr.", !Ref "AWS::Region", ".amazonaws.com/", "Fn::ImportValue": !Sub "${DockerRepoStack}-DockerRepo", ":latest" ] ]
-          LogConfiguration:
-            LogDriver: "awslogs"
-            Options:
-              "awslogs-group": !Ref TaskLogGroup
-              "awslogs-region": !Ref 'AWS::Region'
-              "awslogs-stream-prefix": "ecs"
-          Memory: "512"
-          MemoryReservation: "512"
-          Name: !Ref 'AWS::StackName'
-          PortMappings:
-            - ContainerPort: 8080
-              Protocol: "tcp"
-          Environment:
-            - Name: DBPort
-              Value: 
-                "Fn::ImportValue": 
-                  !Sub "${DatabaseStack}-DBPort"
-            - Name: DBAddress
-              Value: 
-                "Fn::ImportValue": 
-                  !Sub "${DatabaseStack}-DBAddress"
-            - Name: DBPassSSMName
-              Value: !Ref DBPassSSMName
-
   FargateCluster:
-    Type: AWS::ECS::Cluster
+    Type: "AWS::ECS::Cluster"
 
-  # Running service (with one task with one Spring Boot app container)
   FargateService:
-    Type: AWS::ECS::Service
-    Properties: 
+    Type: "AWS::ECS::Service"
+    Properties:
       Cluster: !Ref FargateCluster
       DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: 100
       DesiredCount: 1
-      LaunchType: "FARGATE"
-      NetworkConfiguration: 
-        AwsvpcConfiguration: 
-          AssignPublicIp: "ENABLED"
-          SecurityGroups: 
-            - "Fn::ImportValue": !Sub "${NetworkStack}-ApplicationSG"
-          Subnets: !Split [ ",", "Fn::ImportValue": !Sub "${NetworkStack}-Subnets" ]
-      PlatformVersion: "LATEST"
-      SchedulingStrategy: "REPLICA"
-      TaskDefinition: !Ref TaskDefinition
+      LaunchType: FARGATE
       LoadBalancers:
-        - ContainerName: !Ref 'AWS::StackName'
+        - ContainerName: !Ref "AWS::StackName"
           ContainerPort: 8080
-          TargetGroupArn: 
-            "Fn::ImportValue": 
-              !Sub "${LoadBalancerStack}-TargetGroup" 
+          TargetGroupArn: !ImportValue
+            "Fn::Sub": ${LoadBalancerStack}-TargetGroup
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - "Fn::ImportValue": !Sub ${NetworkStack}-ApplicationSG
+          Subnets: !Split
+            - ","
+            - "Fn::ImportValue": !Sub ${NetworkStack}-Subnets
+      PlatformVersion: LATEST
+      SchedulingStrategy: REPLICA
+      TaskDefinition: !Ref TaskDefinition
+
+  TaskDefinition:
+    Type: "AWS::ECS::TaskDefinition"
+    Properties:
+      ContainerDefinitions:
+        - Cpu: "256"
+          Environment:
+            - Name: DBPort
+              Value: !ImportValue
+                "Fn::Sub": ${DatabaseStack}-DBPort
+            - Name: DBAddress
+              Value: !ImportValue
+                "Fn::Sub": ${DatabaseStack}-DBAddress
+            - Name: DBPassSSMName
+              Value: !Ref DBPassSSMName
+          Essential: true
+          Image: !Join
+            - ""
+            - - Ref: "AWS::AccountId"
+              - .dkr.ecr.
+              - Ref: "AWS::Region"
+              - .amazonaws.com/
+              - "Fn::ImportValue": !Sub ${DockerRepoStack}-DockerRepo
+              - ":latest"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref TaskLogGroup
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: ecs
+          Memory: "512"
+          MemoryReservation: "512"
+          Name: !Ref "AWS::StackName"
+          PortMappings:
+            - ContainerPort: 8080
+              Protocol: tcp
+      Cpu: "1024"
+      ExecutionRoleArn: !GetAtt ECSExecutionRole.Arn
+      Family: !Ref "AWS::StackName"
+      Memory: "2048"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn: !GetAtt TaskRole.Arn
+
+  TaskLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Join
+        - ""
+        - - /ecs/
+          - Ref: "AWS::StackName"
+      RetentionInDays: 7
+
+  TaskRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      MaxSessionDuration: 3600
+      Path: /service-role/
+      Policies:
+        - PolicyName: !Sub "TaskRole-${AWS::StackName}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "ssm:GetParameter"
+                Resource:
+                  - "Fn::Sub": "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${DBPassSSMName}"
 
 Outputs:
   FargateCluster:
     Value: !Ref FargateCluster
+
   FargateService:
     Value: !GetAtt FargateService.Name

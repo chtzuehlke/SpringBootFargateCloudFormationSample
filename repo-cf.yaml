@@ -2,15 +2,16 @@ AWSTemplateFormatVersion: "2010-09-09"
 
 Resources:
   DockerRepo:
-    Type: AWS::ECR::Repository
-    Properties: 
-      RepositoryName: !Ref 'AWS::StackName'
+    Type: "AWS::ECR::Repository"
+    Properties:
+      RepositoryName: !Ref "AWS::StackName"
 
 Outputs:
   DockerRepo:
     Value: !Ref DockerRepo
     Export:
       Name: !Sub "${AWS::StackName}-DockerRepo"
+
   DockerRepoUrl:
     Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${DockerRepo}"
     Export:
