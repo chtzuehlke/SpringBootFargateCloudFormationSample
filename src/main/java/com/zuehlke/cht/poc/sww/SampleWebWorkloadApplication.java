@@ -49,7 +49,7 @@ public class SampleWebWorkloadApplication {
 	
 	@RequestMapping("/")
     public String home() {
-        return "Hello Word Version " + jdbcTemplate.queryForObject("select bar from foo", Integer.class);
+        return "Hello Word v" + jdbcTemplate.queryForObject("select bar from foo", Integer.class);
     }
 	
 	public static void main(String[] args) {

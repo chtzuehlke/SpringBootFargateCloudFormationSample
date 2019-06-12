@@ -1,15 +1,11 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Parameters:
-  VPC:
-    Type: AWS::EC2::VPC::Id
-  Subnets:
-    Type: "List<AWS::EC2::Subnet::Id>"
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup::Id
   CertificateArn:
     Type: String
     Default: NONE
+  NetworkStack:
+    Type: String
 
 Conditions: 
   EnableTLS: !Not [ !Equals [ !Ref CertificateArn, "NONE" ]]
@@ -29,7 +25,8 @@ Resources:
         - Key: deregistration_delay.timeout_seconds
           Value: 60 
       TargetType: ip
-      VpcId: !Ref VPC
+      VpcId: 
+        "Fn::ImportValue": !Sub "${NetworkStack}-VPC"
 
   Listener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -62,11 +59,15 @@ Resources:
           Value: 60
       Scheme: internet-facing
       SecurityGroups:
-        - !Ref SecurityGroup
-      Subnets: !Ref Subnets
+        - "Fn::ImportValue": !Sub "${NetworkStack}-LoadBalancerSG"
+      Subnets: !Split [ ",", "Fn::ImportValue": !Sub "${NetworkStack}-Subnets" ]
 
 Outputs:
   TargetGroup:
     Value: !Ref TargetGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-TargetGroup"
   LoadBalancer:
     Value: !GetAtt LoadBalancer.DNSName
+    Export:
+      Name: !Sub "${AWS::StackName}-LoadBalancer"

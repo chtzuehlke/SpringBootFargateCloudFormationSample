@@ -1,20 +1,18 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Parameters:
-  Subnets:
-    Type: "List<AWS::EC2::Subnet::Id>"
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup::Id
   MasterUserPassword:
     Type: String
     NoEcho: true
+  NetworkStack:
+    Type: String
 
 Resources:
   DBSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
     Properties: 
       DBSubnetGroupDescription: db subnet group
-      SubnetIds: !Ref Subnets
+      SubnetIds: !Split [ ",", "Fn::ImportValue": !Sub "${NetworkStack}-Subnets" ]
 
   DB:
     Type: AWS::RDS::DBInstance
@@ -22,7 +20,7 @@ Resources:
       DBSubnetGroupName: !Ref DBSubnetGroup
       DBName: db
       VPCSecurityGroups:
-      - Ref: SecurityGroup
+        - "Fn::ImportValue": !Sub "${NetworkStack}-DatabaseSG"
       AllocatedStorage: '5'
       DBInstanceClass: db.t3.micro
       Engine: MySQL
@@ -31,9 +29,11 @@ Resources:
     DeletionPolicy: Delete
 
 Outputs:
-  DBIdentifier:
-    Value: !Ref DB
   DBPort:
-    Value: !GetAtt DB.Endpoint.Address
-  DBAddress:
     Value: !GetAtt DB.Endpoint.Port
+    Export:
+      Name: !Sub "${AWS::StackName}-DBPort"
+  DBAddress:
+    Value: !GetAtt DB.Endpoint.Address
+    Export:
+      Name: !Sub "${AWS::StackName}-DBAddress"

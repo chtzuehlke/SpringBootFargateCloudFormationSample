@@ -2,22 +2,16 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: A repo for a sample Spring Boot-based web workload container image
 
 Parameters:
-  VPC:
-    Type: AWS::EC2::VPC::Id
-  Subnets:
-    Type: "List<AWS::EC2::Subnet::Id>"
-  TargetGroup:
-    Type: String
-  DockerRepo:
-    Type: String
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup::Id
-  DBPort:
-    Type: String
-  DBAddress:
-    Type: String
   DBPassSSMName:
     Type: String
+  NetworkStack:
+    Type: String
+  LoadBalancerStack:
+    Type: String
+  DatabaseStack:
+    Type: String
+  DockerRepoStack:
+    Type: String            
 
 Resources:
   # Required for CloudWatch logging, amongst others
@@ -86,7 +80,7 @@ Resources:
       ContainerDefinitions:
         - Cpu: "256"
           Essential: true
-          Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${DockerRepo}:latest"
+          Image: !Join [ "", [ !Ref "AWS::AccountId", ".dkr.ecr.", !Ref "AWS::Region", ".amazonaws.com/", "Fn::ImportValue": !Sub "${DockerRepoStack}-DockerRepo", ":latest" ] ]
           LogConfiguration:
             LogDriver: "awslogs"
             Options:
@@ -101,9 +95,13 @@ Resources:
               Protocol: "tcp"
           Environment:
             - Name: DBPort
-              Value: !Ref DBPort 
+              Value: 
+                "Fn::ImportValue": 
+                  !Sub "${DatabaseStack}-DBPort"
             - Name: DBAddress
-              Value: !Ref DBAddress 
+              Value: 
+                "Fn::ImportValue": 
+                  !Sub "${DatabaseStack}-DBAddress"
             - Name: DBPassSSMName
               Value: !Ref DBPassSSMName
 
@@ -124,15 +122,17 @@ Resources:
         AwsvpcConfiguration: 
           AssignPublicIp: "ENABLED"
           SecurityGroups: 
-            - !Ref SecurityGroup
-          Subnets: !Ref Subnets
+            - "Fn::ImportValue": !Sub "${NetworkStack}-ApplicationSG"
+          Subnets: !Split [ ",", "Fn::ImportValue": !Sub "${NetworkStack}-Subnets" ]
       PlatformVersion: "LATEST"
       SchedulingStrategy: "REPLICA"
       TaskDefinition: !Ref TaskDefinition
       LoadBalancers:
         - ContainerName: !Ref 'AWS::StackName'
           ContainerPort: 8080
-          TargetGroupArn: !Ref TargetGroup
+          TargetGroupArn: 
+            "Fn::ImportValue": 
+              !Sub "${LoadBalancerStack}-TargetGroup" 
 
 Outputs:
   FargateCluster:

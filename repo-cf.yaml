@@ -9,5 +9,9 @@ Resources:
 Outputs:
   DockerRepo:
     Value: !Ref DockerRepo
+    Export:
+      Name: !Sub "${AWS::StackName}-DockerRepo"
   DockerRepoUrl:
     Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${DockerRepo}"
+    Export:
+      Name: !Sub "${AWS::StackName}-DockerRepoUrl"

@@ -1,3 +1,3 @@
 #!/bin/bash
-./mvnw install dockerfile:build
+./mvnw clean install dockerfile:build
 

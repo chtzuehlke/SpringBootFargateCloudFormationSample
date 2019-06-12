@@ -45,9 +45,23 @@ Resources:
       VpcId: !Ref VPC
 
 Outputs:
+  VPC:
+    Value: !Ref VPC
+    Export:
+      Name: !Sub "${AWS::StackName}-VPC"
+  Subnets:
+    Value: !Join [ ",", !Ref Subnets ]
+    Export:
+      Name: !Sub "${AWS::StackName}-Subnets"      
   LoadBalancerSG:
     Value: !Ref LoadBalancerSG
+    Export:
+      Name: !Sub "${AWS::StackName}-LoadBalancerSG"
   ApplicationSG:
     Value: !Ref ApplicationSG
+    Export:
+      Name: !Sub "${AWS::StackName}-ApplicationSG"
   DatabaseSG:
     Value: !Ref DatabaseSG
+    Export:
+      Name: !Sub "${AWS::StackName}-DatabaseSG"
