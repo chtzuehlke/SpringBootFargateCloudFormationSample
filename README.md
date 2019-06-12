@@ -428,4 +428,4 @@ Keep in mind: as old and new versions will have DB access at the same time durin
 
 - Version 1.0: initial
 - Version 1.1: yaml formatted (with cfn-format-osx-amd64), script cleanups, typos fixed, scripts in README.md tested
-
+- Version 1.2: scripts refactored (multi env support), CloudFormation templates moved to cloudformation folder
