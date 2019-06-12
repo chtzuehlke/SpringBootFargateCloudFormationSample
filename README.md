@@ -99,8 +99,8 @@ CloudFormation yaml template (some details omitted):
 
 Create the CloudFormation stack via AWS cli:
 
-    export DEFAULT_VPC_ID="vpc-c2..." #your vpc id 
-    export SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
+    DEFAULT_VPC_ID=$(aws ec2 describe-vpcs --query 'Vpcs[?IsDefault==`true`].VpcId' --output text)
+    SUBNET_IDS=$(aws ec2 describe-subnets --query "Subnets[?VpcId==\`$DEFAULT_VPC_ID\`].SubnetId" --output text | sed 's/[[:space:]]/,/g')
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-net-dev \
@@ -140,11 +140,11 @@ CloudFormation yaml template (some details omitted):
                     - Key: deregistration_delay.timeout_seconds
                       Value: 60 
                 TargetType: ip
-                VpcId: !Ref VPC
+                VpcId: 
+                    "Fn::ImportValue": !Sub "${NetworkStack}-VPC"
 
         TLSListener:
             Type: AWS::ElasticLoadBalancingV2::Listener
-            Condition: EnableTLS
             Properties:
                 Certificates: 
                     - CertificateArn: !Ref CertificateArn
@@ -163,24 +163,19 @@ CloudFormation yaml template (some details omitted):
                       Value: 60
                 Scheme: internet-facing
                 SecurityGroups:
-                    - !Ref SecurityGroup
-                Subnets: !Ref Subnets
+                    - "Fn::ImportValue": !Sub "${NetworkStack}-LoadBalancerSG"
+                Subnets: !Split [ ",", "Fn::ImportValue": !Sub "${NetworkStack}-Subnets" ]
         ...
 
 Create the CloudFormation stack via AWS cli:
 
-    SG_ID="sg-12..." #your security group id
-    DEFAULT_VPC_ID="vpc-c2..." #your vpc id 
-    SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
     SSL_CERT_ARN="arn:aws:acm:eu-west-1:20...:certificate/73..." #your ACM cert ARN
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-lb-dev \
         --template-body file://lb-cf.yaml \
-        --parameters ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
-                     ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID \
-                     ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
-                     ParameterKey=CertificateArn,ParameterValue="$SSL_CERT_ARN"
+        --parameters ParameterKey=CertificateArn,ParameterValue="$SSL_CERT_ARN" \
+        ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev
 
 ### Database
 
@@ -198,7 +193,7 @@ CloudFormation yaml template (some details omitted):
             Type: "AWS::RDS::DBSubnetGroup"
             Properties: 
                 DBSubnetGroupDescription: db subnet group
-                SubnetIds: !Ref Subnets
+                SubnetIds: !Split [ ",", "Fn::ImportValue": !Sub "${NetworkStack}-Subnets" ]
 
         DB:
             Type: AWS::RDS::DBInstance
@@ -206,7 +201,7 @@ CloudFormation yaml template (some details omitted):
                 DBSubnetGroupName: !Ref DBSubnetGroup
                 DBName: db
                 VPCSecurityGroups:
-                    - Ref: SecurityGroup
+                    - "Fn::ImportValue": !Sub "${NetworkStack}-DatabaseSG"
                 AllocatedStorage: '5'
                 DBInstanceClass: db.t3.micro
                 Engine: MySQL
@@ -215,19 +210,17 @@ CloudFormation yaml template (some details omitted):
                 DeletionPolicy: Delete
         ...
 
-Create the CloudFormation stack via AWS cli:
+Create the CloudFormation stack (and a random password in SSM parameter store) via AWS cli:
 
-    SG_ID="sg-34..." #your security group id
-    DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
-    SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
-    DB_KEY="..." #your secret key
+    PASS=$(openssl rand -hex 20)
+    DB_PASSWORD_PARAM_NAME="dev.db.rand.pass"
+    aws ssm put-parameter --overwrite --name $DB_PASSWORD_PARAM_NAME --type SecureString --value "$PASS"
 
     aws cloudformation create-stack \
         --stack-name samplewebworkload-db-dev \
         --template-body file://db-cf.yaml \
-        --parameters ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
-                     ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
-                     ParameterKey=MasterUserPassword,ParameterValue=$DB_KEY
+        --parameters ParameterKey=MasterUserPassword,ParameterValue=$PASS
+                     ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev
 
 ### Privte Docker Registry
 
@@ -338,7 +331,7 @@ CloudFormation yaml template (some details omitted):
                 ContainerDefinitions:
                     - Cpu: "256"
                       Essential: true
-                      Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${DockerRepo}:latest"
+                      Image: !Join [ "", [ !Ref "AWS::AccountId", ".dkr.ecr.", !Ref "AWS::Region", ".amazonaws.com/", "Fn::ImportValue": !Sub "${DockerRepoStack}-DockerRepo", ":latest" ] ]
                       LogConfiguration:
                         LogDriver: "awslogs"
                         Options:
@@ -353,9 +346,13 @@ CloudFormation yaml template (some details omitted):
                           Protocol: "tcp"
                       Environment:
                         - Name: DBPort
-                          Value: !Ref DBPort 
+                          Value: 
+                            "Fn::ImportValue": 
+                                !Sub "${DatabaseStack}-DBPort" 
                         - Name: DBAddress
-                          Value: !Ref DBAddress 
+                          Value:
+                            "Fn::ImportValue": 
+                                !Sub "${DatabaseStack}-DBAddress"
                         - Name: DBPassSSMName
                           Value: !Ref DBPassSSMName
 
@@ -376,45 +373,41 @@ CloudFormation yaml template (some details omitted):
                     AwsvpcConfiguration: 
                     AssignPublicIp: "ENABLED"
                     SecurityGroups: 
-                        - !Ref SecurityGroup
-                    Subnets: !Ref Subnets
+                        - "Fn::ImportValue": !Sub "${NetworkStack}-ApplicationSG"
+                    Subnets: !Split [ ",", "Fn::ImportValue": !Sub "${NetworkStack}-Subnets" ]
                 PlatformVersion: "LATEST"
                 SchedulingStrategy: "REPLICA"
                 TaskDefinition: !Ref TaskDefinition
                 LoadBalancers:
                     - ContainerName: !Ref 'AWS::StackName'
                       ContainerPort: 8080
-                      TargetGroupArn: !Ref TargetGroup
+                      TargetGroupArn:
+                        "Fn::ImportValue": 
+                            !Sub "${LoadBalancerStack}-TargetGroup" 
         ...
 
 Create the CloudFormation stack via AWS cli:
 
-    DB_ADDR="localhost" #your RDS host
-    DB_PORT=3306 #your RDS port
-    SG_ID="sg-34..." #your security group id
-    ELB_TARGET_GROUP="..." #your ALB target group id
-    DOCKER_REPO_NAME="..." #your ECR registry name
-    DEFAULT_VPC_ID="vpc-c20263a4" #your vpc id 
-    SUBNET_IDS="subnet-4e...,subnet-40...,subnet-57..." #your subnet ids
+    DB_PASSWORD_PARAM_NAME="dev.db.rand.pass"
 
     aws cloudformation create-stack \
         --capabilities CAPABILITY_IAM \
         --stack-name samplewebworkload-fargatew-dev \
         --template-body file://fargate-cf.yaml \
-        --parameters ParameterKey=Subnets,ParameterValue=\"$SUBNET_IDS\" \
-                     ParameterKey=VPC,ParameterValue=$DEFAULT_VPC_ID \
-                     ParameterKey=TargetGroup,ParameterValue=$ELB_TARGET_GROUP \
-                     ParameterKey=DockerRepo,ParameterValue=$DOCKER_REPO_NAME \
-                     ParameterKey=SecurityGroup,ParameterValue=$SG_ID \
-                     ParameterKey=DBIdentifier,ParameterValue=$DB_ID \
-                     ParameterKey=DBPort,ParameterValue=$DB_ADDR \
-                     ParameterKey=DBAddress,ParameterValue=$DB_PORT \
-                     ParameterKey=DBPassSSMName,ParameterValue="dev.db.rand.pass"
+        --parameters ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev \
+                     ParameterKey=LoadBalancerStack,ParameterValue=samplewebworkload-lb-dev \
+                     ParameterKey=DatabaseStack,ParameterValue=samplewebworkload-db-dev \
+                     ParameterKey=DockerRepoStack,ParameterValue=samplewebworkload-repo-dev \
+                     ParameterKey=DBPassSSMName,ParameterValue=$DB_PASSWORD_PARAM_NAME
 
 Force redeployment after docker push:
 
-    CLUSTER="..." #your fargate cluster name
-    SERVICE="..." #your fargate service name
+    STACK="samplewebworkload-fargatew-dev"
+    OUTPUT="FargateCluster"
+    CLUSTER=$(aws cloudformation describe-stacks --stack-name $STACK --query "Stacks[0].Outputs[?OutputKey=='$OUTPUT'].OutputValue" --output text)
+
+    OUTPUT="FargateService"
+    SERVICE=$(aws cloudformation describe-stacks --stack-name $STACK --query "Stacks[0].Outputs[?OutputKey=='$OUTPUT'].OutputValue" --output text)
 
     aws ecs update-service --cluster $CLUSTER --service $SERVICE --force-new-deployment
 
