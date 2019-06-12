@@ -175,7 +175,7 @@ Create the CloudFormation stack via AWS cli:
         --stack-name samplewebworkload-lb-dev \
         --template-body file://lb-cf.yaml \
         --parameters ParameterKey=CertificateArn,ParameterValue="$SSL_CERT_ARN" \
-        ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev
+                     ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev
 
 ### Database
 
@@ -245,6 +245,21 @@ Create the CloudFormation stack via AWS cli:
     aws cloudformation create-stack \
         --stack-name samplewebworkload-repo-dev \
         --template-body file://repo-cf.yaml
+
+Build and push docker image:
+
+    ./mvnw clean install dockerfile:build
+
+    LOCAL_TAG=chtzuehlke/sample-web-workload:latest
+    
+    STACK="samplewebworkload-repo-dev"
+    OUTPUT="DockerRepoUrl"
+    REMOTE_TAG=$(aws cloudformation describe-stacks --stack-name $STACK --query "Stacks[0].Outputs[?OutputKey=='$OUTPUT'].OutputValue" --output text)
+    
+    docker tag $LOCAL_TAG $REMOTE_TAG
+
+    $(aws ecr get-login --no-include-email)    
+    docker push $REMOTE_TAG
 
 ### Spring Boot Application
 
