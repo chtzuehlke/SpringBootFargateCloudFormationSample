@@ -1,7 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: A repo for a sample Spring Boot-based web workload container image
-
 Parameters:
   DBPassSSMName:
     Type: String
