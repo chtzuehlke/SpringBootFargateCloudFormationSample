@@ -69,7 +69,7 @@ Resources:
     Type: "AWS::ECS::TaskDefinition"
     Properties:
       ContainerDefinitions:
-        - Cpu: "256"
+        - Cpu: "1024"
           Environment:
             - Name: DBPort
               Value: !ImportValue
@@ -94,8 +94,8 @@ Resources:
               awslogs-group: !Ref TaskLogGroup
               awslogs-region: !Ref "AWS::Region"
               awslogs-stream-prefix: ecs
-          Memory: "512"
-          MemoryReservation: "512"
+          Memory: "2048"
+          MemoryReservation: "2048"
           Name: !Ref "AWS::StackName"
           PortMappings:
             - ContainerPort: 8080
@@ -146,6 +146,10 @@ Resources:
 Outputs:
   FargateCluster:
     Value: !Ref FargateCluster
+    Export:
+      Name: !Sub "${AWS::StackName}-FargateCluster"
 
   FargateService:
     Value: !GetAtt FargateService.Name
+    Export:
+      Name: !Sub "${AWS::StackName}-FargateService"
