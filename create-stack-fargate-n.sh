@@ -2,8 +2,10 @@
 
 PREFIX=${1:-default}
 STACK_PREFIX="helloworld-$PREFIX"
-VERSION=$2
-REMOTE_TAG=$(./get-stack-output.sh $STACK_PREFIX-ecr DockerRepoUrl):$VERSION
+
+SOURCE_PREFIX=${2:-default}
+SOURCE_STACK_PREFIX="helloworld-$SOURCE_PREFIX"
+REMOTE_TAG=$(./get-stack-output.sh $SOURCE_STACK_PREFIX-ecs DockerImage)
 
 DB_PASSWORD_PARAM_NAME=$STACK_PREFIX-db-pwd
 

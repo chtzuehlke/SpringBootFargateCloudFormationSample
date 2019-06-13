@@ -4,7 +4,9 @@
 PREFIX=${1:-default}
 STACK_PREFIX="helloworld-$PREFIX"
 
-echo Environment: $PREFIX
+SOURCE_PREFIX=${2:-default}
+
+echo Environment: $PREFIX based on $SOURCE_PREFIX
 
 echo Create Security Groups Stack
 ./create-stack-securitygroups.sh $PREFIX
@@ -22,28 +24,14 @@ echo Create Database Stack
 echo Create Load Balancer Stack
 ./create-stack-applicationloadbalancer.sh $PREFIX
 
-echo Create Docker Registry Stack
-./create-stack-ecr.sh $PREFIX
-
-echo Build Spring Boot Java Application and Docker Image
-./mvn-clean-install-dockerbuild.sh
-
-echo Wait for Docker Registry Stack
-aws cloudformation wait stack-create-complete --stack-name $STACK_PREFIX-ecr
-
-VERSION=$(./mvn-project-version.sh)-$(date '+%Y%m%d%H%M%S')
-
-echo Push Image $VERSION to Docker Registry
-./docker-tag-and-push.sh $PREFIX $VERSION
-
 echo Wait for Load Balancer Stack
 aws cloudformation wait stack-create-complete --stack-name $STACK_PREFIX-alb
 
 echo Wait for Database Stack
 aws cloudformation wait stack-create-complete --stack-name $STACK_PREFIX-rds
 
-echo Create Fargate Stack $VERSION
-./create-stack-fargate.sh $PREFIX $VERSION
+echo Create Fargate Stack 
+./create-stack-fargate-n.sh $PREFIX $SOURCE_PREFIX
 
 echo Wait for Fargate Stack
 aws cloudformation wait stack-create-complete --stack-name $STACK_PREFIX-ecs
