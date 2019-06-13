@@ -16,6 +16,11 @@ Parameters:
   NetworkStack:
     Type: String
 
+  DockerImageTag:
+    Type: String
+    Default: latest
+
+
 Resources:
   ECSExecutionRole:
     Type: "AWS::IAM::Role"
@@ -85,7 +90,8 @@ Resources:
               - Ref: "AWS::Region"
               - .amazonaws.com/
               - "Fn::ImportValue": !Sub ${DockerRepoStack}-DockerRepo
-              - ":latest"
+              - ":"
+              - Ref: "DockerImageTag"
           LogConfiguration:
             LogDriver: awslogs
             Options:
