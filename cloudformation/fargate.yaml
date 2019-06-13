@@ -7,19 +7,14 @@ Parameters:
   DatabaseStack:
     Type: String
 
-  DockerRepoStack:
-    Type: String
-
   LoadBalancerStack:
     Type: String
 
   NetworkStack:
     Type: String
 
-  DockerImageTag:
+  DockerImage:
     Type: String
-    Default: latest
-
 
 Resources:
   ECSExecutionRole:
@@ -83,15 +78,7 @@ Resources:
             - Name: DBPassSSMName
               Value: !Ref DBPassSSMName
           Essential: true
-          Image: !Join
-            - ""
-            - - Ref: "AWS::AccountId"
-              - .dkr.ecr.
-              - Ref: "AWS::Region"
-              - .amazonaws.com/
-              - "Fn::ImportValue": !Sub ${DockerRepoStack}-DockerRepo
-              - ":"
-              - Ref: "DockerImageTag"
+          Image: !Ref "DockerImage"
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -157,3 +144,6 @@ Outputs:
     Value: !GetAtt FargateService.Name
     Export:
       Name: !Sub "${AWS::StackName}-FargateService"
+
+  DockerImage:
+    Value: !Ref DockerImage

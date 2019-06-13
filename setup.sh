@@ -31,8 +31,10 @@ echo Build Spring Boot Java Application and Docker Image
 echo Wait for Docker Registry Stack
 aws cloudformation wait stack-create-complete --stack-name $STACK_PREFIX-ecr
 
-echo Push Image to Docker Registry
-./docker-tag-and-push.sh $PREFIX
+VERSION=$(./mvn-project-version.sh)-$(date '+%Y%m%d%H%M%S')
+
+echo Push Image $VERSION to Docker Registry
+./docker-tag-and-push.sh $PREFIX $VERSION
 
 echo Wait for Load Balancer Stack
 aws cloudformation wait stack-create-complete --stack-name $STACK_PREFIX-alb
@@ -40,8 +42,8 @@ aws cloudformation wait stack-create-complete --stack-name $STACK_PREFIX-alb
 echo Wait for Database Stack
 aws cloudformation wait stack-create-complete --stack-name $STACK_PREFIX-rds
 
-echo Create Fargate Stack
-./create-stack-fargate.sh $PREFIX
+echo Create Fargate Stack $VERSION
+./create-stack-fargate.sh $PREFIX $VERSION
 
 echo Wait Create Fargate Stack
 aws cloudformation wait stack-create-complete --stack-name $STACK_PREFIX-ecs
