@@ -71,7 +71,7 @@ public class SampleWebWorkloadApplication {
 		
 		String response = sb.toString();
 		
-		log.info("home: {}", response);
+		log.info("Home: {}", response);
 		
         return response;
     }

@@ -1,23 +1,23 @@
-# Let's play with Spring Boot and AWS Fargate 
+# Let's play with AWS Fargate (and a Spring Boot test workload) 
 
 ![High Level Overview](drawio/overview.png)
 
 Vertical architecture slice:
 - Application Load Balancer (TLS-termination)
-- Containerized Java Spring Boot web application with JDBC persistence (running as a AWS Fargate service)
-- Amazon RDS for MySQL instance (Flyway for database migration)
+- Containerized Java Spring Boot web application (with JDBC persistence) running as a AWS Fargate service
+- Amazon RDS for MySQL and Flyway for database migration
 
 ## All automated - from zero to cloud in 13'
 
 Pre-Conditions:
 - AWS CLI installed & configured (sufficient IAM permissions, default region configured)
-- Default VPC is present in the configured default AWS region
+- Default VPC is present in the default AWS region
 - Docker is installed and running
 - Linux-like environment or macOS (bash, curl, sed, ...) 
 - openssl installed (used for password generation)
 - General advice: read - and understand - all shell scripts and CloudFormation YAML templates before executing them
 
-### Automated dev env setup (ECR + ALB + Fargate Service + RDS)
+### Automated AWS dev env setup (CloudFormation stacks for ECR, ALB, Fargate Service & RDS)
 
 Disclaimer:
 - Not production ready yet (e.g. automation scripts w/o error handling)
@@ -25,24 +25,70 @@ Disclaimer:
 
 Steps:
 
-    ./setup.sh testenv
-    ./curl-loop.sh testenv
+    ./setup.sh dev
+    ./curl-loop.sh dev
 
-### Deploy new application version (mvn build, docker push, Fargate deploy)
+### Deploy new application version to dev env (mvn build, docker push & Fargate deploy)
 
 Steps:
 
-    ./update.sh testenv
+    ./update.sh dev
 
-### Automated dev env teardown (delete all stacks/resources)
+### Automated AWS dev env teardown (delete all CloudFormation stacks)
 
 Disclaimer:
 - Not production ready yet (e.g. automation scripts w/o error handling)
-- All data lost (logs, DB)!!!
+- All data lost (docker images, logs, database content)!!!
 
 Steps:
 
-    ./teardown.sh testenv
+    ./teardown.sh dev
+
+## Let's go to production
+
+![High Level Overview](drawio/staging.png)
+
+### AWS setup (dev, test & prod)
+
+Disclaimer:
+- Not production ready yet (e.g. automation scripts w/o error handling)
+- Costs (until teardown): approx. 3*75 USD/month
+
+Steps:
+
+	./setup.sh dev
+	./setup-n.sh test dev
+	./setup-n.sh prod test
+
+### Deployment to dev (mvn build, docker push & Fargate deploy) 
+
+Steps:
+	
+	./update.sh dev
+
+### Staging from dev to test
+
+Steps:
+
+	./update-n.sh test dev
+
+### Staging from test to prod
+
+Steps:
+
+	./update-n.sh prod test
+
+### AWS teardown (dev, test & prod)
+
+Disclaimer:
+- Not production ready yet (e.g. automation scripts w/o error handling)
+- All data lost (docker images, logs, database content)!!!
+
+Steps:
+
+	./teardown-n.sh prod
+	./teardown-n.sh test
+	./teardown.sh dev
 
 ## Behind the scenes (CloudFormation and AWS CLI)
 
@@ -224,7 +270,7 @@ Create the CloudFormation stack via AWS CLI:
         --parameters ParameterKey=MasterUserPassword,ParameterValue=$PASS \
                      ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev
 
-### Privte Docker Registry
+### Private Docker Registry
 
 ![Private Docker Registry](drawio/deployment.png)
  
@@ -249,12 +295,12 @@ Create the CloudFormation stack via AWS CLI:
 Now, let's build and push the docker image:
 
     ./mvnw clean install dockerfile:build
-
+    
     LOCAL_TAG=chtzuehlke/sample-web-workload:latest
-    REMOTE_TAG=$(aws cloudformation list-exports --query "Exports[?Name=='samplewebworkload-repo-dev-DockerRepoUrl'].[Value]" --output text)
+    REMOTE_TAG=$(./get-stack-output.sh samplewebworkload-repo-dev DockerRepoUrl):version1
     
     docker tag $LOCAL_TAG $REMOTE_TAG
-
+    
     $(aws ecr get-login --no-include-email)    
     docker push $REMOTE_TAG
 
@@ -262,7 +308,7 @@ Now, let's build and push the docker image:
 
 It's time to setup our Spring Boot Fargate Service:
 - One FargateService with one task (TaskDefinition) with one container (ContainerDefinitions) with the Spring Boot application
-- The docker image is already waiting in ECR for deployment - we will refer to the :latest version in the TaskDefinition for ease of (re-) deployment (no versioning in this PoC)
+- The docker image is already waiting in ECR for deployment
 - MySQL host and port configuration will be provided via environment variables
 - As the MySQL password is stored in AWS Systems Manager Parameter Store as secure string, we will pass the parameter name to the application via an environment variable (SSM Parameter Store secrets are unfortunately not yet supported in CloudFormation container definitions)
 - The application will leverage the AWS SDK for Java to lookup the password in SSM Parameter Store. Required IAM permissions are configured in the TaskRole
@@ -333,14 +379,7 @@ CloudFormation YAML template (some details omitted):
 	            - Name: DBPassSSMName
 	              Value: !Ref DBPassSSMName
 	          Essential: true
-	          Image: !Join
-	            - ""
-	            - - Ref: "AWS::AccountId"
-	              - .dkr.ecr.
-	              - Ref: "AWS::Region"
-	              - .amazonaws.com/
-	              - "Fn::ImportValue": !Sub ${DockerRepoStack}-DockerRepo
-	              - ":latest"
+	          Image: !Ref "DockerImage"
 	          LogConfiguration:
 	            LogDriver: awslogs
 	            Options:
@@ -399,8 +438,10 @@ CloudFormation YAML template (some details omitted):
 
 Create the CloudFormation stack via AWS CLI:
 
+    REMOTE_TAG=$(./get-stack-output.sh samplewebworkload-repo-dev DockerRepoUrl):version1
+        
     DB_PASSWORD_PARAM_NAME="dev.db.rand.pass"
-
+    
     aws cloudformation create-stack \
         --capabilities CAPABILITY_IAM \
         --stack-name samplewebworkload-fargatew-dev \
@@ -408,19 +449,32 @@ Create the CloudFormation stack via AWS CLI:
         --parameters ParameterKey=NetworkStack,ParameterValue=samplewebworkload-net-dev \
                      ParameterKey=LoadBalancerStack,ParameterValue=samplewebworkload-lb-dev \
                      ParameterKey=DatabaseStack,ParameterValue=samplewebworkload-db-dev \
-                     ParameterKey=DockerRepoStack,ParameterValue=samplewebworkload-repo-dev \
-                     ParameterKey=DBPassSSMName,ParameterValue=$DB_PASSWORD_PARAM_NAME
+                     ParameterKey=DBPassSSMName,ParameterValue=$DB_PASSWORD_PARAM_NAME \
+                     ParameterKey=DockerImage,ParameterValue=$REMOTE_TAG
 
-Force re-deployment (after docker push of a new image, as described above):
+Later, deployment of a new application version (pushed docker image) looks pretty similar:
 
-    CLUSTER=$(aws cloudformation list-exports --query "Exports[?Name=='samplewebworkload-fargatew-dev-FargateCluster'].[Value]" --output text)
-    SERVICE=$(aws cloudformation list-exports --query "Exports[?Name=='samplewebworkload-fargatew-dev-FargateService'].[Value]" --output text)
-
-    aws ecs update-service --cluster $CLUSTER --service $SERVICE --force-new-deployment
+    REMOTE_TAG=$(./get-stack-output.sh samplewebworkload-repo-dev DockerRepoUrl):version2
+        
+    aws cloudformation update-stack \
+        --capabilities CAPABILITY_IAM \
+        --stack-name samplewebworkload-fargatew-dev \
+        --use-previous-template
+        --parameters ParameterKey=NetworkStack,UsePreviousValue=true \
+                     ParameterKey=LoadBalancerStack,UsePreviousValue=true \
+                     ParameterKey=DatabaseStack,UsePreviousValue=true \
+                     ParameterKey=DBPassSSMName,UsePreviousValue=true \
+                     ParameterKey=DockerImage,ParameterValue=$REMOTE_TAG
 
 Keep in mind: as old and new versions will have DB access at the same time during deployment, DB changes must be backwards-compatible and applications must be forwards- and backwards-compatible (e.g. add columns, not delete or rename columns).
 
-## AWS Infrastructure - All in one diagram
+Test it:
+
+    curl http://$(./get-stack-output.sh samplewebworkload-lb-dev LoadBalancer)/
+        
+    curl --insecure https://$(./get-stack-output.sh samplewebworkload-lb-dev LoadBalancer)/ #access via ACM cert hostname does not need --insecure
+
+## AWS Infrastructure - dev environment in one diagram
 
 ![Infrastructure Details](drawio/alb-fargate-rds-ssm.png)
 
@@ -429,3 +483,4 @@ Keep in mind: as old and new versions will have DB access at the same time durin
 - Version 1.0: initial
 - Version 1.1: yaml formatted (with cfn-format-osx-amd64), script cleanups, typos fixed, scripts in README.md tested
 - Version 1.2: scripts refactored (multi env support), CloudFormation templates moved to cloudformation folder
+- Version 1.3: scripts refactored and staging introduced (dev to test to prod)
