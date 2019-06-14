@@ -101,7 +101,7 @@ The AWS resources will be created in multiple CloudFormation stacks which rely o
 ![Security Groups](drawio/securitygroups.png)
  
 With properly configured VPC Security Groups, these requirements will be met:
-- End user web browsers can only communicate with the application load balancer (HTTPS, port 443)
+- End user web browsers can only communicate with the application load balancer (HTTPS, port 443 - currently also 80 for testing w/o ACM certificates)
 - Only the application load balancer can communicate with the Spring Boot web application (HTTP, port 8080)
 - Only the Spring Boot web application can communicate with the database (MySQL, port 3306)
 
