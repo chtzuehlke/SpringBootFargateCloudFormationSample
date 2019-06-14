@@ -163,7 +163,7 @@ Create the CloudFormation stack via AWS CLI:
 ![Load Balancer](drawio/loadbalancer.png)
  
 A properly configured Application Load Balancer meets the following requirements:
-- TLSListeer: terminates HTTPS traffic and is associated with (an already manually created) AWS Certificate Manager TLS certificate
+- TLSListeer: terminates HTTPS traffic and is associated with an (already manually created) AWS Certificate Manager TLS certificate
 - TargetGroup: forwards all traffic to the Spring Boot Fargate service via HTTP
 - A Route53 CNAME record can refer the CNAME of the Application Load Balancer (can be configured manually in a subsequent step)
 
@@ -186,7 +186,6 @@ CloudFormation YAML template (some details omitted):
 	
 	  TLSListener:
 	    Type: "AWS::ElasticLoadBalancingV2::Listener"
-	    Condition: EnableTLS
 	    Properties:
 	      Certificates:
 	        - CertificateArn: !Ref CertificateArn
@@ -452,7 +451,7 @@ Create the CloudFormation stack via AWS CLI:
                      ParameterKey=DBPassSSMName,ParameterValue=$DB_PASSWORD_PARAM_NAME \
                      ParameterKey=DockerImage,ParameterValue=$REMOTE_TAG
 
-Later, deployment of a new application version (pushed docker image) looks pretty similar:
+Later, a new application version (pushed docker image) can be deployed as follows:
 
     REMOTE_TAG=$(./get-stack-output.sh samplewebworkload-repo-dev DockerRepoUrl):version2
         
@@ -466,7 +465,7 @@ Later, deployment of a new application version (pushed docker image) looks prett
                      ParameterKey=DBPassSSMName,UsePreviousValue=true \
                      ParameterKey=DockerImage,ParameterValue=$REMOTE_TAG
 
-Keep in mind: as old and new versions will have DB access at the same time during deployment, DB changes must be backwards-compatible and applications must be forwards- and backwards-compatible (e.g. add columns, not delete or rename columns).
+Keep in mind: as old and new versions will have DB access at the same time (during deployment), DB changes must be backwards-compatible and applications must be forwards- and backwards-compatible (e.g. add columns, not delete or rename columns).
 
 Test it:
 
