@@ -69,6 +69,8 @@ Resources:
       ContainerDefinitions:
         - Cpu: "1024"
           Environment:
+            - Name: SPRING_PROFILES_ACTIVE
+              Value: aws            
             - Name: DBPort
               Value: !ImportValue
                 "Fn::Sub": ${DatabaseStack}-DBPort
