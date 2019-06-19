@@ -2,4 +2,4 @@ create table foo (
 bar int
 );
 
-insert into foo(bar) value (1);
+insert into foo(bar) values (1);
