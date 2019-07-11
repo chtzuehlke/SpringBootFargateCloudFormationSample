@@ -498,6 +498,11 @@ Steps:
 
 From now on, 'git push aws' triggers a build which, in case of build success, creates a new docker image in ECR and deploys the image to Fargate.
 
+Teardown:
+
+	./teardown-stack-pipeline.sh dev
+	./teardown-codecommit-pipeline.sh dev
+
 ## Change Log
 
 - Version 1.0: initial
