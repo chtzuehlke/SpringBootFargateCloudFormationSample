@@ -498,6 +498,8 @@ Steps:
 
 From now on, 'git push' triggers a build which, in case of build success, creates a new docker image in ECR and deploys the image to Fargate.
 
+Problem with current approach: causes a CloudFormation stack drift.
+
 ## Change Log
 
 - Version 1.0: initial
