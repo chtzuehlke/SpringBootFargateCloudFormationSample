@@ -1,0 +1,217 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CI/CD for Fargate Application
+
+Parameters:
+  CodeCommitRepositoryARN:
+    Type: String
+  CodeCommitRepositoryName:
+    Type: String
+  DockerLocalTag:
+    Type: String
+  DockerRemoteTag:
+    Type: String
+
+Resources:
+
+  PipelineArtifsctStoreBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+
+  CodeBuildCacheBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+
+  TriggerEventPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "codepipeline:StartPipelineExecution"
+            Resource: !Join [ '', [ 'arn:aws:codepipeline:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':', !Ref CodePipeline ] ]
+
+  TriggerEventRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "events.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Ref TriggerEventPolicy
+      MaxSessionDuration: 3600
+      Path: /service-role/
+
+  #FIXME apply principle of least privilege :)
+  CodePipelinePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "*"
+            Resource: "*"
+
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "codepipeline.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Ref CodePipelinePolicy
+      MaxSessionDuration: 3600
+      Path: /service-role/
+
+  #FIXME apply principle of least privilege :)
+  CodeBuildPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "*"
+            Resource: "*"           
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "codebuild.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Ref CodeBuildPolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser
+      MaxSessionDuration: 3600
+      Path: /service-role/
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Join [ '', [ !Ref 'AWS::StackName', 'Build' ] ]
+      Artifacts:
+        EncryptionDisabled: true
+        Name: !Join [ '', [ !Ref 'AWS::StackName', 'Pipeline' ] ]
+        Packaging: "NONE"
+        Type: "CODEPIPELINE"
+      Cache:
+        Type: "S3"
+        Location: !Ref CodeBuildCacheBucket
+      Description: "CodeBuild for Fargate Application"
+      Environment:
+        ComputeType: "BUILD_GENERAL1_SMALL"
+        EnvironmentVariables:
+          - Name: "LOCAL_TAG"
+            Type: "PLAINTEXT"
+            Value: !Ref DockerLocalTag
+          - Name: "REMOTE_TAG"
+            Type: "PLAINTEXT"
+            Value: !Ref DockerRemoteTag
+        Image: "aws/codebuild/java:openjdk-8"
+        ImagePullCredentialsType: "CODEBUILD"
+        PrivilegedMode: true
+        Type: "LINUX_CONTAINER"
+      LogsConfig:
+        CloudWatchLogs:
+          Status:  "ENABLED"
+        S3Logs:
+          Status:  "DISABLED"
+      QueuedTimeoutInMinutes: 480
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        InsecureSsl: false
+        Type: "CODEPIPELINE"
+      TimeoutInMinutes: 60
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Join [ '', [ !Ref 'AWS::StackName', 'Pipeline' ] ]
+      ArtifactStores:
+        - ArtifactStore:
+            Location: !Ref PipelineArtifsctStoreBucket
+            Type: "S3"
+          Region: !Ref 'AWS::Region'
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      Stages:
+        - Name: "Source"
+          Actions:
+            - ActionTypeId:
+                Category: "Source"
+                Owner: "AWS"
+                Provider: "CodeCommit"
+                Version: "1"
+              Configuration:
+                BranchName: "master"
+                PollForSourceChanges: "false"
+                RepositoryName: !Ref CodeCommitRepositoryName
+              Name: "Source"
+              OutputArtifacts:
+                - Name: "SourceArtifact"
+              Region: !Ref 'AWS::Region'
+              RunOrder: 1
+        - Name: "Build"
+          Actions:
+            - ActionTypeId:
+                Category: "Build"
+                Owner: "AWS"
+                Provider: "CodeBuild"
+                Version: "1"
+              Configuration:
+                ProjectName: !Join [ '', [ !Ref 'AWS::StackName', 'Build' ] ]
+              InputArtifacts:
+                - Name: "SourceArtifact"
+              Name: "Build"
+              OutputArtifacts:
+                - Name: "CloudformationArtifact"
+              Region: !Ref 'AWS::Region'
+              RunOrder: 1
+
+  CodePipelineTriggerEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - aws.codecommit
+        detail-type:
+          - 'CodeCommit Repository State Change'
+        resources:
+          - !Ref CodeCommitRepositoryARN
+        detail:
+          event:
+            - referenceCreated
+            - referenceUpdated
+          referenceType:
+            - branch
+          referenceName:
+            - master
+      Targets:
+        - Id: "codepipeline"
+          Arn: !Join [ '', [ 'arn:aws:codepipeline:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':', !Ref CodePipeline ] ]
+          RoleArn: !GetAtt TriggerEventRole.Arn
+
+Outputs:
+  PipelineArtifsctStoreBucket:
+    Value: !Ref PipelineArtifsctStoreBucket
+  CodeBuildCacheBucket:
+    Value: !Ref CodeBuildCacheBucket

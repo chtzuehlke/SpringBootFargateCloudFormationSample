@@ -483,3 +483,14 @@ Test it:
 - Version 1.1: yaml formatted (with cfn-format-osx-amd64), script cleanups, typos fixed, scripts in README.md tested
 - Version 1.2: scripts refactored (multi env support), CloudFormation templates moved to cloudformation folder
 - Version 1.3: scripts refactored and staging introduced (e.g. dev to test to prod)
+
+# Let's build a CI/CD pipeline (word in progress)
+
+Create a CodeCommit git repository (will act as the source of our pipeline)
+
+	./create-stack-codecommit.sh dev
+	
+	git remote add aws $(./get-stack-output.sh helloworld-dev-git CodeCommitRepositoryCloneURL)
+	git push aws
+
+...

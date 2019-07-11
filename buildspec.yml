@@ -1,0 +1,28 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Logging in to Amazon ECR
+      - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
+      - echo LOCAL_TAG=$LOCAL_TAG
+      - echo REMOTE_TAG=$REMOTE_TAG
+  build:
+    commands:
+      - echo Starting build on `date`
+      - ./mvnw clean install dockerfile:build
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker tag $LOCAL_TAG $REMOTE_TAG
+      - docker push $REMOTE_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"%s","imageUri":"%s"}]' $LOCAL_TAG $REMOTE_TAG > imagedefinitions.json
+      - cat imagedefinitions.json
+artifacts:
+    files: imagedefinitions.json
+
+cache:
+    paths:
+     - '/root/.m2/**/*'

@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: GIT Repo for Fargate Application
+Resources:
+  CodeCommitRepository:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: !Ref 'AWS::StackName'
+Outputs:
+  CodeCommitRepositoryName:
+    Value: !GetAtt CodeCommitRepository.Name
+  CodeCommitRepositoryARN:
+    Value: !GetAtt CodeCommitRepository.Arn
+  CodeCommitRepositoryCloneURL:
+    Value: !GetAtt CodeCommitRepository.CloneUrlSsh
