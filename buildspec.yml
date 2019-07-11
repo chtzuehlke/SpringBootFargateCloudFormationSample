@@ -5,8 +5,6 @@ phases:
     commands:
       - echo Logging in to Amazon ECR
       - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
-      - echo LOCAL_TAG=$LOCAL_TAG
-      - echo REMOTE_TAG=$REMOTE_TAG
   build:
     commands:
       - echo Starting build on `date`
@@ -15,6 +13,10 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
+      - VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)-$(date '+%Y%m%d%H%M%S')
+      - REMOTE_TAG=$REPO_URL:$VERSION
+      - echo LOCAL_TAG=$LOCAL_TAG
+      - echo REMOTE_TAG=$REMOTE_TAG
       - docker tag $LOCAL_TAG $REMOTE_TAG
       - docker push $REMOTE_TAG
       - echo Writing image definitions file...

@@ -8,7 +8,7 @@ Parameters:
     Type: String
   DockerLocalTag:
     Type: String
-  DockerRemoteTag:
+  RepoUrl:
     Type: String
 
 Resources:
@@ -124,9 +124,9 @@ Resources:
           - Name: "LOCAL_TAG"
             Type: "PLAINTEXT"
             Value: !Ref DockerLocalTag
-          - Name: "REMOTE_TAG"
+          - Name: "REPO_URL"
             Type: "PLAINTEXT"
-            Value: !Ref DockerRemoteTag
+            Value: !Ref RepoUrl
         Image: "aws/codebuild/java:openjdk-8"
         ImagePullCredentialsType: "CODEBUILD"
         PrivilegedMode: true
