@@ -16,8 +16,17 @@ Parameters:
     Type: String  
   FargateService:
     Type: String        
+
   FargateStackName:
     Type: String        
+  DBPassSSMName:
+    Type: String
+  DatabaseStack:
+    Type: String
+  LoadBalancerStack:
+    Type: String
+  NetworkStack:
+    Type: String
 
 Resources:
 
@@ -239,6 +248,13 @@ Resources:
                 StackName: !Ref FargateStackName
                 TemplateConfiguration: CloudformationArtifact::fargateconfig.json
                 TemplatePath: SourceArtifact::cloudformation/fargate.yaml
+                ParameterOverrides: !Sub | 
+                  {
+                    "NetworkStack":"${NetworkStack}",
+                    "LoadBalancerStack":"${LoadBalancerStack}",
+                    "DatabaseStack":"${DatabaseStack}",
+                    "DBPassSSMName":"${DBPassSSMName}"
+                  }
               InputArtifacts:
                 - Name: CloudformationArtifact
                 - Name: SourceArtifact
