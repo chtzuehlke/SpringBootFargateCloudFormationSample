@@ -10,9 +10,6 @@ aws cloudformation update-stack --capabilities CAPABILITY_IAM --stack-name $STAC
 	ParameterKey=CodeCommitRepositoryName,UsePreviousValue=true \
 	ParameterKey=DockerLocalTag,UsePreviousValue=true \
 	ParameterKey=RepoUrl,UsePreviousValue=true \
-	ParameterKey=ContainerName,UsePreviousValue=true \
-	ParameterKey=FargateCluster,UsePreviousValue=true \
-	ParameterKey=FargateService,UsePreviousValue=true \
 	ParameterKey=FargateStackName,ParameterValue=$STACK_PREFIX-ecs \
 	ParameterKey=NetworkStack,ParameterValue=$STACK_PREFIX-sg \
 	ParameterKey=LoadBalancerStack,ParameterValue=$STACK_PREFIX-alb \

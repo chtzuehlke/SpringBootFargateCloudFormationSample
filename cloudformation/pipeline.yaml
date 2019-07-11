@@ -10,13 +10,6 @@ Parameters:
     Type: String
   RepoUrl:
     Type: String
-  ContainerName:
-    Type: String  
-  FargateCluster:
-    Type: String  
-  FargateService:
-    Type: String        
-
   FargateStackName:
     Type: String        
   DBPassSSMName:
@@ -29,7 +22,6 @@ Parameters:
     Type: String
 
 Resources:
-
   PipelineArtifsctStoreBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Delete
@@ -172,9 +164,6 @@ Resources:
           - Name: "REPO_URL"
             Type: "PLAINTEXT"
             Value: !Ref RepoUrl
-          - Name: "CONTAINER_NAME"
-            Type: "PLAINTEXT"
-            Value: !Ref ContainerName
         Image: "aws/codebuild/java:openjdk-8"
         ImagePullCredentialsType: "CODEBUILD"
         PrivilegedMode: true

@@ -23,9 +23,6 @@ phases:
       - echo REMOTE_TAG=$REMOTE_TAG
       - docker tag $LOCAL_TAG $REMOTE_TAG
       - docker push $REMOTE_TAG          
-      - echo Writing image definitions file...
-      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REMOTE_TAG > imagedefinitions.json
-      - cat imagedefinitions.json
       - printf '{"Parameters":{"DockerImage":"%s"}}' $REMOTE_TAG > fargateconfig.json
       - cat fargateconfig.json      
 
