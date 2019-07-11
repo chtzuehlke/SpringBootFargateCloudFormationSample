@@ -19,6 +19,6 @@ aws cloudformation update-stack --capabilities CAPABILITY_IAM --stack-name $STAC
 	ParameterKey=CodeCommitRepositoryName,UsePreviousValue=true \
 	ParameterKey=DockerLocalTag,UsePreviousValue=true \
 	ParameterKey=RepoUrl,UsePreviousValue=true \
-	ParameterKey=ContainerName,ParameterValue=$CONTAINER_NAME \
-	ParameterKey=FargateCluster,ParameterValue=$FARGATE_CLUSTER \
-	ParameterKey=FargateService,ParameterValue=$FARGATE_SERVICE
+	ParameterKey=ContainerName,UsePreviousValue=true \
+	ParameterKey=FargateCluster,UsePreviousValue=true \
+	ParameterKey=FargateService,UsePreviousValue=true
