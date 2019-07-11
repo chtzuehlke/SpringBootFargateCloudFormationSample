@@ -29,7 +29,9 @@ phases:
       - printf '{"Parameters" : {"DockerImage":"%s"}}' $REMOTE_TAG > fargateconfig.json      
       - cat fargateconfig.json      
 artifacts:
-    files: [imagedefinitions.json, fargateconfig.json]
+    files: 
+      - imagedefinitions.json
+      - fargateconfig.json
 
 cache:
     paths:
