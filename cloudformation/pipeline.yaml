@@ -16,6 +16,8 @@ Parameters:
     Type: String  
   FargateService:
     Type: String        
+  FargateStackName:
+    Type: String        
 
 Resources:
 
@@ -111,6 +113,34 @@ Resources:
       MaxSessionDuration: 3600
       Path: /service-role/
 
+  #FIXME apply principle of least privilege :)
+  CloudFormationPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "*"
+            Resource: "*"
+
+  CloudFormationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "cloudformation.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Ref CloudFormationPolicy
+      MaxSessionDuration: 3600
+      Path: /service-role/
+
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -200,13 +230,18 @@ Resources:
             - ActionTypeId:
                 Category: "Deploy"
                 Owner: "AWS"
-                Provider: "ECS"
+                Provider: "CloudFormation"
                 Version: "1"
               Configuration:
-                ClusterName: !Ref FargateCluster
-                ServiceName: !Ref FargateService
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_IAM
+                RoleArn: !GetAtt [CloudFormationRole, Arn]
+                StackName: !Ref FargateStackName
+                TemplateConfiguration: CloudformationArtifact::fargateconfig.json
+                TemplatePath: SourceArtifact::cloudformation/fargate.yaml
               InputArtifacts:
                 - Name: CloudformationArtifact
+                - Name: SourceArtifact
               Name: "Deploy"
               Region: !Ref 'AWS::Region'
               RunOrder: 1
