@@ -504,4 +504,4 @@ From now on, 'git push' triggers a build which, in case of build success, create
 - Version 1.1: yaml formatted (with cfn-format-osx-amd64), script cleanups, typos fixed, scripts in README.md tested
 - Version 1.2: scripts refactored (multi env support), CloudFormation templates moved to cloudformation folder
 - Version 1.3: scripts refactored and staging introduced (e.g. dev to test to prod)
-- Version 1.4: build pipeline sample (work in progress: currently *.* IAM policies in roles)
+- Version 1.4: build pipeline sample (work in progress: currently "barn door IAM policies" in certain roles)
