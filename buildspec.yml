@@ -14,13 +14,17 @@ phases:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
       - VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)-$(date '+%Y%m%d%H%M%S')
-      - REMOTE_TAG=$REPO_URL:$VERSION
       - echo LOCAL_TAG=$LOCAL_TAG
+      - REMOTE_TAG=$REPO_URL:latest
       - echo REMOTE_TAG=$REMOTE_TAG
       - docker tag $LOCAL_TAG $REMOTE_TAG
-      - docker push $REMOTE_TAG
+      - docker push $REMOTE_TAG  
+      - REMOTE_TAG=$REPO_URL:$VERSION
+      - echo REMOTE_TAG=$REMOTE_TAG
+      - docker tag $LOCAL_TAG $REMOTE_TAG
+      - docker push $REMOTE_TAG          
       - echo Writing image definitions file...
-      - printf '[{"name":"%s","imageUri":"%s"}]' $LOCAL_TAG $REMOTE_TAG > imagedefinitions.json
+      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REMOTE_TAG > imagedefinitions.json
       - cat imagedefinitions.json
 artifacts:
     files: imagedefinitions.json
