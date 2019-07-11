@@ -233,6 +233,7 @@ Resources:
               Configuration:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_IAM
+                #FIXME below: after first deploy to ECS by the pipeline via fargate stack update, the pipeline stack MUST NOT be deleted before the fargate stack!
                 RoleArn: !GetAtt [CloudFormationRole, Arn]
                 StackName: !Ref FargateStackName
                 TemplateConfiguration: CloudformationArtifact::fargateconfig.json

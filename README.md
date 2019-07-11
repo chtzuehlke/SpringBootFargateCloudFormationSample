@@ -477,9 +477,7 @@ Test it:
 
 ![Infrastructure Details](drawio/alb-fargate-rds-ssm.png)
 
-# Bonus material: Let's build a CI/CD pipeline (work in progress)
-
-Caution: don't currently try this at home (delete issue)
+# Bonus material: Let's build a CI/CD pipeline (alpha / work in progress)
 
 ## Create a CodeCommit git repository and push the sources to it 
 
@@ -500,7 +498,7 @@ Steps:
 
 From now on, 'git push aws' triggers a build which, in case of build success, creates a new docker image in ECR and deploys the image to Fargate.
 
-Teardown:
+Teardown (important: delete the pipeline stack after deleting the fargate stack):
 
 	./teardown-stack-pipeline.sh dev
 	./teardown-codecommit-pipeline.sh dev
