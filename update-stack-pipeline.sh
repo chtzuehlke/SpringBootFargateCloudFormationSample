@@ -10,4 +10,5 @@ aws cloudformation update-stack --capabilities CAPABILITY_IAM --stack-name $STAC
 	ParameterKey=RepoUrl,UsePreviousValue=true \
 	ParameterKey=ContainerName,UsePreviousValue=true \
 	ParameterKey=FargateCluster,UsePreviousValue=true \
-	ParameterKey=FargateService,UsePreviousValue=true
+	ParameterKey=FargateService,UsePreviousValue=true \
+	ParameterKey=FargateStackName,ParameterValue=$STACK_PREFIX-ecs
