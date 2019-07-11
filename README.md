@@ -479,6 +479,8 @@ Test it:
 
 # Bonus material: Let's build a CI/CD pipeline (work in progress)
 
+Caution: don't currently try this at home (delete issue)
+
 ## Create a CodeCommit git repository and push the sources to it 
 
 Pre-Conditions:
