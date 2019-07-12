@@ -11,6 +11,8 @@ CODECOMMIT_NAME=$(./get-stack-output.sh $STACK_PREFIX-git CodeCommitRepositoryNa
 
 DB_PASSWORD_PARAM_NAME=$STACK_PREFIX-db-pwd
 
+CLOUD_FORMATION_ROLE=$(./get-stack-output.sh $STACK_PREFIX-sg CloudFormationRole)
+
 aws cloudformation create-stack --capabilities CAPABILITY_IAM --stack-name $STACK_PREFIX-pipe --template-body file://cloudformation/pipeline.yaml --parameters \
 	ParameterKey=CodeCommitRepositoryARN,ParameterValue=$CODECOMMIT_ARN \
 	ParameterKey=CodeCommitRepositoryName,ParameterValue=$CODECOMMIT_NAME \
@@ -20,4 +22,5 @@ aws cloudformation create-stack --capabilities CAPABILITY_IAM --stack-name $STAC
 	ParameterKey=NetworkStack,ParameterValue=$STACK_PREFIX-sg \
 	ParameterKey=LoadBalancerStack,ParameterValue=$STACK_PREFIX-alb \
 	ParameterKey=DatabaseStack,ParameterValue=$STACK_PREFIX-rds \
-	ParameterKey=DBPassSSMName,ParameterValue=$DB_PASSWORD_PARAM_NAME
+	ParameterKey=DBPassSSMName,ParameterValue=$DB_PASSWORD_PARAM_NAME \
+	ParameterKey=CloudFormationRole,ParameterValue=$CLOUD_FORMATION_ROLE

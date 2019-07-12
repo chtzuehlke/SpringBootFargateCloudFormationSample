@@ -477,31 +477,36 @@ Test it:
 
 ![Infrastructure Details](drawio/alb-fargate-rds-ssm.png)
 
-# Bonus material: Let's build a CI/CD pipeline (alpha / work in progress)
+# [Bonus] Let's build a CI/CD pipeline (still in alpha)
 
-## Create a CodeCommit git repository and push the sources to it 
+## Create a CodeCommit git repository
 
 Pre-Conditions:
-- Create an SSH public key and associate it with your IAM user (https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-ssh-unixes.html)
+- Create a default SSH key pair and associate the public key with your IAM user
+- Configuration in ~/.ssh/config (see https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-ssh-unixes.html)
+- Fargate stack up and running (e.g. ./setup.sh executed)
 
 Steps:
 
 	./create-stack-codecommit.sh dev
-	git remote add aws $(./get-stack-output.sh helloworld-dev-git CodeCommitRepositoryCloneURL)
-	git push aws
 
-## Create the pipeline (CodePipeline & CodeBuild)
+## Create a build- and deploy pipeline (CodePipeline & CodeBuild)
 
 Steps:
 
 	./create-stack-pipeline.sh dev
 
-From now on, 'git push aws' triggers a build which, in case of build success, creates a new docker image in ECR and deploys the image to Fargate.
+Trigger build and deploy:
 
-Teardown (important: delete the pipeline stack after deleting the fargate stack):
+	git remote add aws $(./get-stack-output.sh helloworld-dev-git CodeCommitRepositoryCloneURL)
+	git push aws
+
+## Teardown
 
 	./teardown-stack-pipeline.sh dev
-	./teardown-codecommit-pipeline.sh dev
+
+	git remote rm aws
+	./teardown-stack-codecommit.sh dev
 
 ## Change Log
 
@@ -509,4 +514,5 @@ Teardown (important: delete the pipeline stack after deleting the fargate stack)
 - Version 1.1: yaml formatted (with cfn-format-osx-amd64), script cleanups, typos fixed, scripts in README.md tested
 - Version 1.2: scripts refactored (multi env support), CloudFormation templates moved to cloudformation folder
 - Version 1.3: scripts refactored and staging introduced (e.g. dev to test to prod)
-- Version 1.4: build pipeline sample (work in progress: currently "barn door IAM policies" in certain roles)
+- Version 1.4: build pipeline (currently with "barn door IAM policies" in certain roles)
+- Version 1.5: resolved build pipeline teardown issues (CF role deleted too early)

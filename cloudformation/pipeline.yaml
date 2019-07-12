@@ -20,6 +20,8 @@ Parameters:
     Type: String
   NetworkStack:
     Type: String
+  CloudFormationRole:
+    Type: String
 
 Resources:
   PipelineArtifsctStoreBucket:
@@ -114,34 +116,6 @@ Resources:
       MaxSessionDuration: 3600
       Path: /service-role/
 
-  #FIXME apply principle of least privilege :)
-  CloudFormationPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Action: "*"
-            Resource: "*"
-
-  CloudFormationRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service:
-                - "cloudformation.amazonaws.com"
-            Action:
-              - "sts:AssumeRole"
-      ManagedPolicyArns:
-        - !Ref CloudFormationPolicy
-      MaxSessionDuration: 3600
-      Path: /service-role/
-
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -233,8 +207,7 @@ Resources:
               Configuration:
                 ActionMode: CREATE_UPDATE
                 Capabilities: CAPABILITY_IAM
-                #FIXME below: after first deploy to ECS by the pipeline via fargate stack update, the pipeline stack MUST NOT be deleted before the fargate stack!
-                RoleArn: !GetAtt [CloudFormationRole, Arn]
+                RoleArn: !Ref CloudFormationRole
                 StackName: !Ref FargateStackName
                 TemplateConfiguration: CloudformationArtifact::fargateconfig.json
                 TemplatePath: SourceArtifact::cloudformation/fargate.yaml

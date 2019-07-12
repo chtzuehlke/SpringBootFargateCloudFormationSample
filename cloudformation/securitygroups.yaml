@@ -45,6 +45,34 @@ Resources:
           ToPort: 80
       VpcId: !Ref VPC
 
+  #FIXME apply principle of least privilege & move to sep. CF stack
+  CloudFormationPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "*"
+            Resource: "*"
+
+  CloudFormationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "cloudformation.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Ref CloudFormationPolicy
+      MaxSessionDuration: 3600
+      Path: /service-role/
+
 Outputs:
   ApplicationSG:
     Value: !Ref ApplicationSG
@@ -72,3 +100,6 @@ Outputs:
     Value: !Ref VPC
     Export:
       Name: !Sub "${AWS::StackName}-VPC"
+
+  CloudFormationRole:
+    Value: !GetAtt [CloudFormationRole, Arn]
