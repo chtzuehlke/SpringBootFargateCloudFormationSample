@@ -477,7 +477,7 @@ Test it:
 
 ![Infrastructure Details](drawio/alb-fargate-rds-ssm.png)
 
-# [Bonus] Let's build a simplistic CI/CD pipeline (still in alpha)
+# [Bonus] Let's build a simplistic CI(/CD) pipeline (still in alpha)
 
 ![CodePipeline in action](drawio/pipeline.png)
 
