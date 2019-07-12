@@ -13,3 +13,11 @@ aws cloudformation create-stack --capabilities CAPABILITY_IAM --stack-name $STAC
 	ParameterKey=DatabaseStack,ParameterValue=$STACK_PREFIX-rds \
 	ParameterKey=DockerImage,ParameterValue=$REMOTE_TAG \
 	ParameterKey=DBPassSSMName,ParameterValue=$DB_PASSWORD_PARAM_NAME
+
+#FIXME to avoid terminate issue after pipeline deployment:
+#- use --role-arn to create fargate stack (and create service role)
+#- https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-add-tags.html
+#- https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-servicerole.html
+#- https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-iam-template.html
+#- https://docs.aws.amazon.com/de_de/codepipeline/latest/userguide/reference-pipeline-structure.html
+#- https://docs.aws.amazon.com/de_de/AWSCloudFormation/latest/UserGuide/continuous-delivery-codepipeline-action-reference.html

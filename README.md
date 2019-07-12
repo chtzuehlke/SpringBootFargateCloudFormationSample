@@ -477,12 +477,12 @@ Test it:
 
 ![Infrastructure Details](drawio/alb-fargate-rds-ssm.png)
 
-# Bonus material: Let's build a CI/CD pipeline (work in progress)
+# Bonus material: Let's build a CI/CD pipeline (alpha / work in progress)
 
 ## Create a CodeCommit git repository and push the sources to it 
 
 Pre-Conditions:
-- Create an SSH public key and associate it with your IAM user (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_ssh-keys.html)
+- Create an SSH public key and associate it with your IAM user (https://docs.aws.amazon.com/codecommit/latest/userguide/setting-up-ssh-unixes.html)
 
 Steps:
 
@@ -494,9 +494,14 @@ Steps:
 
 Steps:
 
-	./create-stack-codecommit.sh dev
+	./create-stack-pipeline.sh dev
 
-From now on, 'git push' triggers a build which, in case of build success, creates a new docker image in ECR and deploys the image to Fargate.
+From now on, 'git push aws' triggers a build which, in case of build success, creates a new docker image in ECR and deploys the image to Fargate.
+
+Teardown (important: delete the pipeline stack after deleting the fargate stack):
+
+	./teardown-stack-pipeline.sh dev
+	./teardown-codecommit-pipeline.sh dev
 
 ## Change Log
 
