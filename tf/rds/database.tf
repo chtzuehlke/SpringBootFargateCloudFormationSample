@@ -25,6 +25,7 @@ resource "aws_db_subnet_group" "DBSubnetGroup" {
 }
 
 resource "aws_db_instance" "DB" {
+  skip_final_snapshot = true
   allocated_storage    = 5
   storage_type         = "gp2"
   engine               = "mysql"
