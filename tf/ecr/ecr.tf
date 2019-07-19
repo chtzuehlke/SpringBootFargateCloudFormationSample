@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 resource "aws_ecr_repository" "DockerRepo" {
-  name = "tfdockerrepo"
+  name = "${terraform.workspace}-dockerrepo"
 }
 
 output "DockerRepo" {

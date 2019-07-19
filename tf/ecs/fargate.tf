@@ -47,7 +47,7 @@ data "aws_iam_policy_document" "ECSExecutionRole-policy" {
 }
 
 resource "aws_iam_role" "ECSExecutionRole" {
-  name               = "TFECSExecutionRole"
+  name               = "${terraform.workspace}-ECSExecutionRole"
   path               = "/service-role/"
   assume_role_policy = "${data.aws_iam_policy_document.ECSExecutionRole-policy.json}"
 }
@@ -63,13 +63,13 @@ resource "aws_iam_role_policy_attachment" "ECSExecutionRole-attach" {
 
 ### FIXME avoid * resource
 resource "aws_iam_role" "TaskRole" {
-  name               = "TFTaskRole"
+  name               = "${terraform.workspace}-TaskRole"
   path               = "/service-role/"
   assume_role_policy = "${data.aws_iam_policy_document.ECSExecutionRole-policy.json}"
 }
 
 resource "aws_iam_policy" "TaskRole-policy" {
-  name        = "test-policy"
+  name        = "${terraform.workspace}-test-policy"
   description = "A test policy"
 
   policy = <<EOF
@@ -95,11 +95,11 @@ resource "aws_iam_role_policy_attachment" "TaskRole-attach" {
 ###
 
 resource "aws_ecs_cluster" "FargateCluster" {
-  name = "TFFargateCluster"
+  name = "${terraform.workspace}-FargateCluster"
 }
 
 resource "aws_ecs_service" "FargateService" {
-  name            = "TFFargateService"
+  name            = "${terraform.workspace}-FargateService"
   cluster         = "${aws_ecs_cluster.FargateCluster.id}"
   task_definition = "${aws_ecs_task_definition.TaskDefinition.arn}"
   desired_count   = 1
@@ -123,7 +123,7 @@ resource "aws_ecs_service" "FargateService" {
 }
 
 resource "aws_ecs_task_definition" "TaskDefinition" {
-  family                    = "SpringBootDemo"
+  family                    = "${terraform.workspace}-SpringBootDemo"
   task_role_arn             = "${aws_iam_role.TaskRole.arn}"
   execution_role_arn        = "${aws_iam_role.ECSExecutionRole.arn}"
   network_mode              = "awsvpc"
@@ -150,7 +150,7 @@ resource "aws_ecs_task_definition" "TaskDefinition" {
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
-        "awslogs-group": "/fargate/service/tffargatelog",
+        "awslogs-group": "/fargate/service/${terraform.workspace}-fargatelog",
         "awslogs-region": "eu-central-1",
         "awslogs-stream-prefix": "ecs"
       }
@@ -170,6 +170,6 @@ DEFINITION
 }
 
 resource "aws_cloudwatch_log_group" "logs" {
-  name              = "/fargate/service/tffargatelog"
-  retention_in_days = "14"
+  name              = "/fargate/service/${terraform.workspace}-fargatelog"
+  retention_in_days = "1"
 }

@@ -27,7 +27,7 @@ resource "aws_lb_listener" "Listener" {
 }
 
 resource "aws_lb" "LoadBalancer" {
-  name               = "TFLoadBalancer"
+  name               = "${terraform.workspace}-LoadBalancer"
   internal           = false
   load_balancer_type = "application"
   security_groups    = ["${var.alb_security_group}"]
@@ -35,7 +35,7 @@ resource "aws_lb" "LoadBalancer" {
 }
 
 resource "aws_lb_target_group" "TargetGroup" {
-  name     = "TFTargetGroup"
+  name     = "${terraform.workspace}-TargetGroup"
   port     = 8080
   protocol = "HTTP"
   target_type = "ip"

@@ -8,7 +8,7 @@ variable "vpc_id" {
 }
 
 resource "aws_security_group" "ApplicationSG" {
-  name        = "TFApplicationSG"
+  name        = "${terraform.workspace}-ApplicationSG"
   description = "Allow 8080"
   vpc_id      = var.vpc_id
 
@@ -28,7 +28,7 @@ resource "aws_security_group" "ApplicationSG" {
 }
 
 resource "aws_security_group" "DatabaseSG" {
-  name        = "TFDatabaseSG"
+  name        = "${terraform.workspace}-DatabaseSG"
   description = "Allow 3306"
   vpc_id      = var.vpc_id
 
@@ -48,7 +48,7 @@ resource "aws_security_group" "DatabaseSG" {
 }
 
 resource "aws_security_group" "LoadBalancerSG" {
-  name        = "TFLoadBalancerSG"
+  name        = "${terraform.workspace}-LoadBalancerSG"
   description = "Allow 80"
   vpc_id      = var.vpc_id
 

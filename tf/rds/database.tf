@@ -20,7 +20,7 @@ data "aws_subnet_ids" "vps_subnets" {
 }
 
 resource "aws_db_subnet_group" "DBSubnetGroup" {
-  name       = "tfdbsubnetgroup"
+  name       = "${terraform.workspace}-dbsubnetgroup"
   subnet_ids = "${data.aws_subnet_ids.vps_subnets.ids}"
 }
 
