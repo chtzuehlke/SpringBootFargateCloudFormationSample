@@ -1,6 +1,8 @@
 # Terraform mini how-to
 
-Pre-cond (samples): `pwd` is this directory
+Pre-conditions:
+- See pre-conditions in ../README.md
+- `pwd` is this directory
 
 Create docker registry:
 
@@ -14,6 +16,10 @@ Build and push version1:
     ./mvn-clean-install-dockerbuild.sh
     ./terraform-docker-tag-push.sh version1
     cd terraform
+
+Use S3 to store terraform state (use your own bucket and adjust fargateservice/main.tf accordingly):
+
+    aws s3api create-bucket  --bucket springbootfargatecloudformationsampleterraform --region eu-central-1 --create-bucket-configuration LocationConstraint=eu-central-1
 
 Run service(version1) in dev environment:
 

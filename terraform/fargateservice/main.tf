@@ -3,6 +3,14 @@ provider "aws" {
   region  = "eu-central-1"
 }
 
+terraform {
+  backend "s3" {
+    bucket = "springbootfargatecloudformationsampleterraform"
+    key    = "fargateservice"
+    region = "eu-central-1"
+  }
+}
+
 module "sg" {
   source = "./modules/sg"
 
