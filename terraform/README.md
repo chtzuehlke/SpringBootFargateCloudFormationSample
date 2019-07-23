@@ -17,13 +17,41 @@ Build and push version1:
 
 Run service(version1) in dev environment:
 
-    cd dockerregistry
+    cd fargateservice
     ./setup.sh dev version1
     cd ..
     
 Test service(version1) in dev:
 
     cd ..
+    ./terraform-curl-loop.sh
+    cd terraform
+
+Run service(version1) in dev environment:
+
+    cd fargateservice
+    ./setup.sh test version1
+    cd ..
+
+Deploy service(version2) in dev:
+
+    cd ..
+    ./mvn-clean-install-dockerbuild.sh
+    ./terraform-docker-tag-push.sh version2
+    cd terraform
+
+    cd fargateservice
+    terraform workspace select dev
+    ./apply.sh version2
+    cd ..
+
+Test service(version2) in dev and serivce(verion1) in test:
+
+    cd ..
+    echo $(cd terraform/fargateservice && terraform workspace select dev)
+    ./terraform-curl-loop.sh
+    
+    echo $(cd terraform/fargateservice && terraform workspace select test)
     ./terraform-curl-loop.sh
     cd terraform
 

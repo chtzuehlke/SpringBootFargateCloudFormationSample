@@ -1,5 +1,6 @@
 #!/bin/bash
 
+ENVIRONMENT=$(terraform workspace show)
 VERSION=$1
 
 DEFAULT_VPC_ID=$(aws ec2 describe-vpcs --query 'Vpcs[?IsDefault==`true`].VpcId' --output text)
@@ -7,7 +8,7 @@ DEFAULT_VPC_ID=$(aws ec2 describe-vpcs --query 'Vpcs[?IsDefault==`true`].VpcId' 
 DOCKER_REPO_URL=$(cat ../dockerregistry/repo_url.txt)
 
 DB_PASSWORD="fixMe234!x_sd342sDDs"
-SSM_DB_PASS_KEY="TFSampleRDSPass"
+SSM_DB_PASS_KEY="$ENVIRONMENT-TFSampleRDSPass"
 aws ssm put-parameter --overwrite --name $SSM_DB_PASS_KEY --type SecureString --value "$DB_PASSWORD"
 
 terraform apply \

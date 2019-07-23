@@ -35,7 +35,7 @@ public class SampleWebWorkloadApplication {
 			}
 		}
 		
-		sb.append("(version1) foo.bar=" + jdbcTemplate.queryForObject("select bar from foo", Integer.class));
+		sb.append("(version2) foo.bar=" + jdbcTemplate.queryForObject("select bar from foo", Integer.class));
 		
 		String response = sb.toString();
 		
