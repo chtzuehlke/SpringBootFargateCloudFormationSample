@@ -27,7 +27,7 @@ Test service(version1) in dev:
     ./terraform-curl-loop.sh
     cd terraform
 
-Run service(version1) in dev environment:
+Run service(version1) in test environment:
 
     cd fargateservice
     ./setup.sh test version1
@@ -47,7 +47,7 @@ Deploy service(version2) in dev:
     ./apply.sh version2
     cd ..
 
-Test service(version2) in dev and service(verion1) in test:
+Test service(new version2) in dev and service(old verison1) in test:
 
     cd ..
     echo $(cd terraform/fargateservice && terraform workspace select dev)
