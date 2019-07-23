@@ -1,12 +1,3 @@
-provider "aws" {
-  version = "~> 2.0"
-  region  = "eu-central-1"
-}
-
-variable "vpc_id" {
-  type = string
-}
-
 resource "aws_security_group" "ApplicationSG" {
   name        = "${terraform.workspace}-ApplicationSG"
   description = "Allow 8080"
@@ -65,16 +56,4 @@ resource "aws_security_group" "LoadBalancerSG" {
     protocol        = "-1"
     cidr_blocks     = ["0.0.0.0/0"]
   }
-}
-
-output "ApplicationSG" {
-  value = aws_security_group.ApplicationSG.id
-}
-
-output "DatabaseSG" {
-  value = aws_security_group.DatabaseSG.id
-}
-
-output "LoadBalancerSG" {
-  value = aws_security_group.LoadBalancerSG.id
 }

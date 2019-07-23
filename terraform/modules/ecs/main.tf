@@ -1,36 +1,3 @@
-provider "aws" {
-  version = "~> 2.0"
-  region  = "eu-central-1"
-}
-
-variable "db_port" {
-  type = string
-}
-
-variable "db_address" {
-  type = string
-}
-
-variable "db_pass_ssmname" {
-  type = string
-}
-
-variable "docker_image" {
-  type = string
-}
-
-variable "aws_lb_target_group_arn" {
-  type = string
-}
-
-variable "vpc_id" {
-  type = string
-}
-
-variable "ecs_security_group" {
-  type = string
-}
-
 data "aws_subnet_ids" "vps_subnets" {
   vpc_id = "${var.vpc_id}"
 }
@@ -92,7 +59,6 @@ resource "aws_iam_role_policy_attachment" "TaskRole-attach" {
   role       = "${aws_iam_role.TaskRole.name}"
   policy_arn = "${aws_iam_policy.TaskRole-policy.arn}"
 }
-###
 
 resource "aws_ecs_cluster" "FargateCluster" {
   name = "${terraform.workspace}-FargateCluster"

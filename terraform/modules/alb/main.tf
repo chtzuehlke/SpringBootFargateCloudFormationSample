@@ -1,16 +1,3 @@
-provider "aws" {
-  version = "~> 2.0"
-  region  = "eu-central-1"
-}
-
-variable "vpc_id" {
-  type = string
-}
-
-variable "alb_security_group" {
-  type = string
-}
-
 data "aws_subnet_ids" "vps_subnets" {
   vpc_id = "${var.vpc_id}"
 }
@@ -49,12 +36,4 @@ resource "aws_lb_target_group" "TargetGroup" {
     interval = 30
     matcher = "200"
   }
-}
-
-output "LoadBalancer" {
-  value = aws_lb.LoadBalancer.dns_name
-}
-
-output "TargetGroup" {
-  value = aws_lb_target_group.TargetGroup.arn
 }

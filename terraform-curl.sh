@@ -1,3 +1,3 @@
 #!/bin/bash
-curl $(cd tf/alb/ && terraform output LoadBalancer)
 
+curl $(cd terraform && terraform output LoadBalancer)
