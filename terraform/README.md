@@ -33,19 +33,21 @@ Run service(version1) in dev environment:
     ./setup.sh test version1
     cd ..
 
-Deploy service(version2) in dev:
+Build and push version2:
 
     cd ..
     ./mvn-clean-install-dockerbuild.sh
     ./terraform-docker-tag-push.sh version2
     cd terraform
 
+Deploy service(version2) in dev:
+
     cd fargateservice
     terraform workspace select dev
     ./apply.sh version2
     cd ..
 
-Test service(version2) in dev and serivce(verion1) in test:
+Test service(version2) in dev and service(verion1) in test:
 
     cd ..
     echo $(cd terraform/fargateservice && terraform workspace select dev)
