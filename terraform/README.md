@@ -1,32 +1,30 @@
-...
+# Terraform mini how-to
 
-Create service in dev:
+Pre-cond (samples): `pwd` is this directory
 
-    terraform init
-    terraform workspace new dev
-    ./apply.sh version1
+Create docker registry:
+
+    cd dockerregistry
+    ./setup.sh
+    cd ..
+
+Build and push version1:
+
     cd ..
     ./mvn-clean-install-dockerbuild.sh
     ./terraform-docker-tag-push.sh version1
-    ./terraform-curl.sh
+    cd terraform
+
+Run service(version1) in dev environment:
+
+    cd dockerregistry
+    ./setup.sh dev version1
+    cd ..
     
-...
+Test service(version1) in dev:
 
-Create service in test:
-
-    terraform workspace new test
-    ./apply.sh version1
     cd ..
-    ./mvn-clean-install-dockerbuild.sh
-    ./terraform-docker-tag-push.sh version1
-    ./terraform-curl.sh
+    ./terraform-curl-loop.sh
+    cd terraform
 
 ...
-
-Cleanup:
-
-    terraform workspace select test
-    ./destroy.sh
-    terraform workspace select dev 
-    ./destroy.sh
-

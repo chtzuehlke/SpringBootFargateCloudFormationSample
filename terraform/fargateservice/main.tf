@@ -3,10 +3,6 @@ provider "aws" {
   region  = "eu-central-1"
 }
 
-module "ecr" {
-  source = "./modules/ecr"
-}
-
 module "sg" {
   source = "./modules/sg"
 
@@ -42,7 +38,7 @@ module "ecs" {
   db_address = module.rds.DBAddress
   db_pass_ssmname = var.db_pass_ssmname
 
-  docker_image = "${module.ecr.DockerRepoUrl}:${var.docker_image_version}"
+  docker_image = "${var.docker_repo_url}:${var.docker_image_version}"
 
   aws_lb_target_group_arn = module.alb.TargetGroup
 }

@@ -13,3 +13,7 @@ variable "db_pass_ssmname" {
 variable "docker_image_version" {
   type = string
 }
+
+variable "docker_repo_url" {
+  type = string
+}

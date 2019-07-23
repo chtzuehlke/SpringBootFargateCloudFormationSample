@@ -2,7 +2,7 @@
 
 while true
 do
-  curl $(cd terraform && terraform output LoadBalancer)
+  curl $(cd terraform/fargateservice && terraform output LoadBalancer)
   echo
   sleep 1
 done
