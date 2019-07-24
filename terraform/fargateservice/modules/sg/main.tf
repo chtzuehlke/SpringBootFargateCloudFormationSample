@@ -7,7 +7,7 @@ resource "aws_security_group" "ApplicationSG" {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    security_groups = ["${aws_security_group.LoadBalancerSG.id}"]
+    security_groups = [aws_security_group.LoadBalancerSG.id]
   }
 
   egress {
@@ -27,7 +27,7 @@ resource "aws_security_group" "DatabaseSG" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    security_groups = ["${aws_security_group.ApplicationSG.id}"]
+    security_groups = [aws_security_group.ApplicationSG.id]
   }
 
   egress {

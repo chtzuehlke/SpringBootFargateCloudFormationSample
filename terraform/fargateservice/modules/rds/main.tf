@@ -1,10 +1,10 @@
 data "aws_subnet_ids" "vps_subnets" {
-  vpc_id = "${var.vpc_id}"
+  vpc_id = var.vpc_id
 }
 
 resource "aws_db_subnet_group" "DBSubnetGroup" {
   name       = "${terraform.workspace}-dbsubnetgroup"
-  subnet_ids = "${data.aws_subnet_ids.vps_subnets.ids}"
+  subnet_ids = data.aws_subnet_ids.vps_subnets.ids
 }
 
 resource "aws_db_instance" "DB" {
@@ -18,6 +18,6 @@ resource "aws_db_instance" "DB" {
   username             = "masteruser"
   password             = var.db_masteruser_password
   parameter_group_name = "default.mysql5.7"
-  db_subnet_group_name = "${aws_db_subnet_group.DBSubnetGroup.name}"
-  vpc_security_group_ids = ["${var.db_security_group}"]
+  db_subnet_group_name = aws_db_subnet_group.DBSubnetGroup.name
+  vpc_security_group_ids = [var.db_security_group]
 }

@@ -1,5 +1,5 @@
 data "aws_subnet_ids" "vps_subnets" {
-  vpc_id = "${var.vpc_id}"
+  vpc_id = var.vpc_id
 }
 
 data "aws_iam_policy_document" "ECSExecutionRole-policy" {
@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "ECSExecutionRole-policy" {
 resource "aws_iam_role" "ECSExecutionRole" {
   name               = "${terraform.workspace}-ECSExecutionRole"
   path               = "/service-role/"
-  assume_role_policy = "${data.aws_iam_policy_document.ECSExecutionRole-policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.ECSExecutionRole-policy.json
 }
 
 data "aws_iam_policy" "AmazonECSTaskExecutionRolePolicy" {
@@ -24,15 +24,15 @@ data "aws_iam_policy" "AmazonECSTaskExecutionRolePolicy" {
 }
 
 resource "aws_iam_role_policy_attachment" "ECSExecutionRole-attach" {
-  role       = "${aws_iam_role.ECSExecutionRole.name}"
-  policy_arn = "${data.aws_iam_policy.AmazonECSTaskExecutionRolePolicy.arn}"
+  role       = aws_iam_role.ECSExecutionRole.name
+  policy_arn = data.aws_iam_policy.AmazonECSTaskExecutionRolePolicy.arn
 }
 
 ### FIXME avoid * resource
 resource "aws_iam_role" "TaskRole" {
   name               = "${terraform.workspace}-TaskRole"
   path               = "/service-role/"
-  assume_role_policy = "${data.aws_iam_policy_document.ECSExecutionRole-policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.ECSExecutionRole-policy.json
 }
 
 resource "aws_iam_policy" "TaskRole-policy" {
@@ -56,8 +56,8 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "TaskRole-attach" {
-  role       = "${aws_iam_role.TaskRole.name}"
-  policy_arn = "${aws_iam_policy.TaskRole-policy.arn}"
+  role       = aws_iam_role.TaskRole.name
+  policy_arn = aws_iam_policy.TaskRole-policy.arn
 }
 
 resource "aws_ecs_cluster" "FargateCluster" {
@@ -66,8 +66,8 @@ resource "aws_ecs_cluster" "FargateCluster" {
 
 resource "aws_ecs_service" "FargateService" {
   name            = "${terraform.workspace}-FargateService"
-  cluster         = "${aws_ecs_cluster.FargateCluster.id}"
-  task_definition = "${aws_ecs_task_definition.TaskDefinition.arn}"
+  cluster         = aws_ecs_cluster.FargateCluster.id
+  task_definition = aws_ecs_task_definition.TaskDefinition.arn
   desired_count   = 1
   depends_on      = ["aws_iam_role_policy_attachment.ECSExecutionRole-attach"]
 
@@ -76,13 +76,13 @@ resource "aws_ecs_service" "FargateService" {
   deployment_minimum_healthy_percent = "100"
 
   network_configuration {
-    security_groups    = ["${var.ecs_security_group}"]
-    subnets            = "${data.aws_subnet_ids.vps_subnets.ids}"
+    security_groups    = [var.ecs_security_group]
+    subnets            = data.aws_subnet_ids.vps_subnets.ids
     assign_public_ip   = true
   } 
 
   load_balancer {
-    target_group_arn = "${var.aws_lb_target_group_arn}"
+    target_group_arn = var.aws_lb_target_group_arn
     container_name   = "SpringBootContainer"
     container_port   = 8080
   }
@@ -90,8 +90,8 @@ resource "aws_ecs_service" "FargateService" {
 
 resource "aws_ecs_task_definition" "TaskDefinition" {
   family                    = "${terraform.workspace}-SpringBootDemo"
-  task_role_arn             = "${aws_iam_role.TaskRole.arn}"
-  execution_role_arn        = "${aws_iam_role.ECSExecutionRole.arn}"
+  task_role_arn             = aws_iam_role.TaskRole.arn
+  execution_role_arn        = aws_iam_role.ECSExecutionRole.arn
   network_mode              = "awsvpc"
   requires_compatibilities  = ["FARGATE"]
   cpu                       = "1024"
