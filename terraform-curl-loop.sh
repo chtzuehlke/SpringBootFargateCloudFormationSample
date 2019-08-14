@@ -1,8 +1,10 @@
 #!/bin/bash
 
+URL=$(cd terraform/fargateservice && terraform output LoadBalancer)
+
 while true
 do
-  curl $(cd terraform/fargateservice && terraform output LoadBalancer)
+  curl $URL
   echo
   sleep 1
 done

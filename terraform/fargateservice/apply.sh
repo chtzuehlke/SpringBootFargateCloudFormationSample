@@ -1,7 +1,9 @@
 #!/bin/bash
 
 ENVIRONMENT=$(terraform workspace show)
-VERSION=$1
+VERSION=${1:-version1}
+
+echo "$(date) Start $ENVIRONMENT:$VERSION" >> apply.log
 
 DEFAULT_VPC_ID=$(aws ec2 describe-vpcs --query 'Vpcs[?IsDefault==`true`].VpcId' --output text)
 
@@ -17,3 +19,5 @@ terraform apply \
     -var="docker_image_version=$VERSION" \
     -var="db_pass_ssmname=$SSM_DB_PASS_KEY" \
     -var="docker_repo_url=$DOCKER_REPO_URL"
+
+echo "$(date) End   $ENVIRONMENT:$VERSION" >> apply.log

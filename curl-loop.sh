@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PREFIX=${1:-default}
+PREFIX=${1:-dev}
 STACK_PREFIX="helloworld-$PREFIX"
 
 HOST=$(./get-stack-output.sh $STACK_PREFIX-alb LoadBalancer)

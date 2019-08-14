@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ENVIRONMENT=$(terraform workspace show)
-VERSION=$1
+VERSION=${1:-version1}
 
 DEFAULT_VPC_ID=$(aws ec2 describe-vpcs --query 'Vpcs[?IsDefault==`true`].VpcId' --output text)
 

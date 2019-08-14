@@ -31,3 +31,4 @@ setup-dev-duration.txt
 cfn-format-osx-amd64
 temp
 testdb.mv.db
+split2.log
